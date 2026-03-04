@@ -1,0 +1,163 @@
+// prisma/schema.prisma
+// CLINIC OS — Complete Database Schema v1.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── CLINIC (top-level entity) ───────────────────────────────
+model Clinic {
+  id                String    @id @default(cuid())
+  name              String
+  address           String?
+  phone             String?
+  whatsappNumber    String?
+  defaultFee        Int       @default(250)  // EGP
+  isMultiDoctor     Boolean   @default(false)
+  subscriptionTier  String    @default("professional") // starter | professional | growth
+  createdAt         DateTime  @default(now())
+  doctors           Doctor[]
+  expenses          Expense[]
+}
+
+// ─── DOCTOR ──────────────────────────────────────────────────
+model Doctor {
+  id           String    @id @default(cuid())
+  clinicId     String
+  clinic       Clinic    @relation(fields: [clinicId], references: [id])
+  name         String
+  specialty    String?
+  email        String    @unique
+  role         String    @default("doctor")  // doctor | admin
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  appointments Appointment[]
+  patients     Patient[]
+  auditorLogs  AuditorLog[]
+}
+
+// ─── PATIENT ─────────────────────────────────────────────────
+model Patient {
+  id               String    @id @default(cuid())
+  doctorId         String
+  doctor           Doctor    @relation(fields: [doctorId], references: [id])
+  name             String
+  phone            String
+  age              Int?
+  gender           String?   // male | female
+  bloodType        String?
+  allergies        String?
+  permanentNotes   String?
+  isNew            Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  appointments     Appointment[]
+  records          VisitRecord[]
+  conditions       ChronicCondition[]
+}
+
+// ─── CHRONIC CONDITION ───────────────────────────────────────
+model ChronicCondition {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  type      String   // diabetes | hypertension | cardiac | thyroid | other
+  notes     String?
+  addedAt   DateTime @default(now())
+}
+
+// ─── APPOINTMENT ─────────────────────────────────────────────
+model Appointment {
+  id               String    @id @default(cuid())
+  doctorId         String
+  doctor           Doctor    @relation(fields: [doctorId], references: [id])
+  patientId        String
+  patient          Patient   @relation(fields: [patientId], references: [id])
+  scheduledAt      DateTime
+  visitType        String    // new | followup | chronic | urgent | walkin
+  complaint        String?
+  confirmStatus    String    @default("unconfirmed") // confirmed | unconfirmed | walkin
+  status           String    @default("scheduled")  // scheduled | arrived | noshow | cancelled
+  paymentStatus    String    @default("pending")    // pending | paid | waived
+  paymentMethod    String?   // cash | instapay | fawry | insurance
+  amountPaid       Int?      // EGP
+  convenienceFee   Int       @default(0)  // EGP 5 if booked via WhatsApp
+  notes            String?
+  createdAt        DateTime  @default(now())
+  record           VisitRecord?
+}
+
+// ─── VISIT RECORD (EMR-lite) ─────────────────────────────────
+model VisitRecord {
+  id             String    @id @default(cuid())
+  appointmentId  String    @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  patientId      String
+  patient        Patient   @relation(fields: [patientId], references: [id])
+  complaint      String?
+  vitalsBP       String?   // "120/80"
+  vitalsPulse    Int?
+  vitalsTemp     Float?
+  vitalsWeight   Float?
+  vitalsO2       Int?
+  symptoms       String?   // JSON array of strings
+  diagnosis      String?
+  prescription   String?   // JSON array of {drug, dose, frequency, duration}
+  labReferrals   String?   // JSON array of {test, lab, notes, received}
+  followUpDays   Int?
+  followUpReason String?
+  doctorNotes    String?
+  voiceNoteUrl   String?
+  voiceNoteText  String?   // AI transcription
+  createdAt      DateTime  @default(now())
+  attachments    Attachment[]
+}
+
+// ─── ATTACHMENT ──────────────────────────────────────────────
+model Attachment {
+  id        String      @id @default(cuid())
+  recordId  String
+  record    VisitRecord @relation(fields: [recordId], references: [id])
+  url       String
+  type      String      // image | pdf
+  name      String
+  createdAt DateTime    @default(now())
+}
+
+// ─── EXPENSE ─────────────────────────────────────────────────
+model Expense {
+  id          String   @id @default(cuid())
+  clinicId    String
+  clinic      Clinic   @relation(fields: [clinicId], references: [id])
+  category    String   // rent | utilities | supplies | salary | equipment | other
+  description String
+  amountEGP   Int
+  date        DateTime
+  isRecurring Boolean  @default(false)
+  staffName   String?  // for salary entries
+  staffRole   String?
+  isPaid      Boolean  @default(false)
+  usefulLifeMonths Int? // for equipment depreciation
+  createdAt   DateTime @default(now())
+}
+
+// ─── AUDITOR LOG ─────────────────────────────────────────────
+model AuditorLog {
+  id               String   @id @default(cuid())
+  doctorId         String
+  doctor           Doctor   @relation(fields: [doctorId], references: [id])
+  date             DateTime
+  patientsExpected Int
+  expectedCashEGP  Int
+  reportedCashEGP  Int
+  discrepancyEGP   Int
+  discrepancyPct   Float
+  status           String   // green | amber | red
+  notes            String?
+  createdAt        DateTime @default(now())
+}
