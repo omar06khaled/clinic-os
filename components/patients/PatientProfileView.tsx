@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { PatientDetail, ConditionDetail } from "@/types"
+import type { PatientDetail, ConditionDetail, VisitRecordDetail } from "@/types"
 import { MedicalSnapshotPanel } from "@/components/patients/MedicalSnapshotPanel"
 import { PatientOverviewTab } from "@/components/patients/PatientOverviewTab"
 import { VisitHistoryTab } from "@/components/patients/VisitHistoryTab"
 import { ChronicTrackingTab } from "@/components/patients/ChronicTrackingTab"
+import { NewVisitPanel } from "@/components/patients/NewVisitPanel"
 
 // ── Avatar helpers (shared with PatientRow) ───────────────────────────────────
 
@@ -97,38 +98,6 @@ function MobileSnapshotBanner({
   )
 }
 
-// ── Zone 3 placeholder (New Visit panel — Task 3.3) ───────────────────────────
-
-function NewVisitPanel({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="flex flex-col h-full" dir="rtl">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <h2 className="font-semibold text-base">زيارة جديدة</h2>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
-          aria-label="إغلاق"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div className="flex-1 flex items-center justify-center p-6 text-center">
-        <div>
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-            <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <p className="font-medium text-sm">نموذج الزيارة</p>
-          <p className="text-xs text-muted-foreground mt-1">قادم في المهمة 3.3</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface PatientProfileViewProps {
@@ -150,6 +119,16 @@ export function PatientProfileView({ patient: initialPatient }: PatientProfileVi
 
   function handleConditionsUpdate(conditions: ConditionDetail[]) {
     setPatient((p) => ({ ...p, conditions }))
+  }
+
+  function handleVisitSaved(record: VisitRecordDetail) {
+    setPatient((p) => ({
+      ...p,
+      records: [record, ...p.records],
+      totalVisits: p.totalVisits + 1,
+      lastVisitDate: record.appointment.scheduledAt,
+    }))
+    setActiveTab("visits")
   }
 
   return (
@@ -251,15 +230,25 @@ export function PatientProfileView({ patient: initialPatient }: PatientProfileVi
 
       {/* ── Zone 3: Desktop right panel (400px, slides in) ─────────────────── */}
       {zone3Open && (
-        <aside className="hidden lg:flex flex-col w-[400px] flex-shrink-0 border-l bg-card overflow-y-auto">
-          <NewVisitPanel onClose={() => setZone3Open(false)} />
+        <aside className="hidden lg:flex flex-col w-[400px] flex-shrink-0 border-l bg-card overflow-hidden">
+          <NewVisitPanel
+            patientId={patient.id}
+            patientName={patient.name}
+            onClose={() => setZone3Open(false)}
+            onVisitSaved={handleVisitSaved}
+          />
         </aside>
       )}
 
       {/* ── Zone 3: Mobile full-screen overlay ─────────────────────────────── */}
       {zone3Open && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background flex flex-col">
-          <NewVisitPanel onClose={() => setZone3Open(false)} />
+        <div className="lg:hidden fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
+          <NewVisitPanel
+            patientId={patient.id}
+            patientName={patient.name}
+            onClose={() => setZone3Open(false)}
+            onVisitSaved={handleVisitSaved}
+          />
         </div>
       )}
     </div>

@@ -253,7 +253,7 @@ function VisitCard({ record }: { record: VisitRecordDetail }) {
       {/* Collapsed header — always visible */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-right hover:bg-muted/30 transition-colors"
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-right hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           {/* Timeline dot */}
@@ -278,7 +278,7 @@ function VisitCard({ record }: { record: VisitRecordDetail }) {
 
       {/* Expanded content */}
       {expanded && (
-        <div className="px-4 pb-4">
+        <div className="px-6 pb-4">
           <ExpandedVisitContent record={record} />
         </div>
       )}
