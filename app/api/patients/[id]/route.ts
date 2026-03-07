@@ -1,29 +1,36 @@
-import { notFound, redirect } from "next/navigation"
+import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase-server"
 import { prisma } from "@/lib/prisma"
-import { PatientProfileView } from "@/components/patients/PatientProfileView"
 import type { PatientDetail } from "@/types"
 
-interface Props {
-  params: Promise<{ id: string }>
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-export default async function PatientProfilePage({ params }: Props) {
-  const { id } = await params
-  // ── Auth ──────────────────────────────────────────────────────────────────
+async function getAuthenticatedDoctor() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user?.email) redirect("/login")
+  if (!user?.email) return null
 
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
     select: { id: true },
   })
-  if (!doctor) redirect("/login?error=not_provisioned")
+  return doctor
+}
 
-  // ── Fetch patient — scoped strictly to this doctor ────────────────────────
+// ── GET /api/patients/[id] ────────────────────────────────────────────────────
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const doctor = await getAuthenticatedDoctor()
+  if (!doctor) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const patient = await prisma.patient.findFirst({
     where: { id, doctorId: doctor.id },
     include: {
@@ -50,15 +57,15 @@ export default async function PatientProfilePage({ params }: Props) {
     },
   })
 
-  if (!patient) notFound()
+  if (!patient) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
 
-  // ── Compute aggregate stats ───────────────────────────────────────────────
   const totalSpent = patient.appointments.reduce(
     (sum, a) => sum + (a.amountPaid ?? 0),
     0
   )
 
-  // Last visit = most recent appointment.scheduledAt among records
   const lastVisitDate =
     patient.records.length > 0
       ? patient.records.reduce<string | null>((latest, r) => {
@@ -67,8 +74,7 @@ export default async function PatientProfilePage({ params }: Props) {
         }, null)
       : null
 
-  // ── Serialize (Dates → ISO strings for client component) ─────────────────
-  const serialized: PatientDetail = {
+  const data: PatientDetail = {
     id: patient.id,
     name: patient.name,
     phone: patient.phone,
@@ -120,5 +126,49 @@ export default async function PatientProfilePage({ params }: Props) {
     lastVisitDate,
   }
 
-  return <PatientProfileView patient={serialized} />
+  return NextResponse.json(data)
+}
+
+// ── PATCH /api/patients/[id] ──────────────────────────────────────────────────
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const doctor = await getAuthenticatedDoctor()
+  if (!doctor) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const existing = await prisma.patient.findFirst({
+    where: { id, doctorId: doctor.id },
+    select: { id: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const body = await req.json()
+  const update: { allergies?: string | null; permanentNotes?: string | null } = {}
+
+  if ("allergies" in body) {
+    update.allergies = typeof body.allergies === "string" && body.allergies.trim()
+      ? body.allergies.trim()
+      : null
+  }
+  if ("permanentNotes" in body) {
+    update.permanentNotes =
+      typeof body.permanentNotes === "string" && body.permanentNotes.trim()
+        ? body.permanentNotes.trim()
+        : null
+  }
+
+  const updated = await prisma.patient.update({
+    where: { id },
+    data: update,
+    select: { allergies: true, permanentNotes: true },
+  })
+
+  return NextResponse.json(updated)
 }

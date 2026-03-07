@@ -28,19 +28,19 @@ async function main() {
   })
 
   // ── 2. Doctors ───────────────────────────────────────────────
-  const doctorAhmed = await prisma.doctor.upsert({
-    where: { email: "ahmed.mahmoud@amalelklinik.com" },
-    update: {},
-    create: {
-      id:        "doctor-ahmed",
-      clinicId:  clinic.id,
-      name:      "Dr. Ahmed Mahmoud",
-      specialty: "General Practice",
-      email:     "ahmed.mahmoud@amalelklinik.com",
-      role:      "admin",
-      isActive:  true,
-    },
-  })
+ const doctorAhmed = await prisma.doctor.upsert({
+  where: { email: "omarkhalednassar@gmail.com" },
+  update: {},
+  create: {
+    id:        "doctor-ahmed",
+    clinicId:  clinic.id,
+    name:      "Dr. Ahmed Mahmoud",
+    specialty: "General Practice",
+    email:     "omarkhalednassar@gmail.com",  // ← fix this
+    role:      "admin",
+    isActive:  true,
+  },
+})
 
   const doctorSara = await prisma.doctor.upsert({
     where: { email: "sara.hassan@amalelklinik.com" },
@@ -56,18 +56,6 @@ async function main() {
     },
   })
 
-  // Keep existing auth doctor
-  await prisma.doctor.upsert({
-    where: { email: "omarkhalednassar@gmail.com" },
-    update: {},
-    create: {
-      clinicId:  clinic.id,
-      name:      "Dr. Omar Nassar",
-      specialty: "General Practice",
-      email:     "omarkhalednassar@gmail.com",
-      role:      "admin",
-    },
-  })
 
   // ── 3. Patients ──────────────────────────────────────────────
   const patientMohamed = await prisma.patient.upsert({
