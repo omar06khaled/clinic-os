@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+
 export default function FinancialsPage() {
-  return null
+  redirect("/financials/revenue")
 }

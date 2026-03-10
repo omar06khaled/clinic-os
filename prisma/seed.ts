@@ -60,11 +60,11 @@ async function main() {
   // ── 3. Patients ──────────────────────────────────────────────
   const patientMohamed = await prisma.patient.upsert({
     where: { id: "patient-001" },
-    update: {},
+    update: { name: "محمد علي" },
     create: {
       id:             "patient-001",
       doctorId:       doctorAhmed.id,
-      name:           "Mohamed Ali",
+      name:           "محمد علي",
       phone:          "+201112345678",
       age:            52,
       gender:         "male",
@@ -77,11 +77,11 @@ async function main() {
 
   const patientFatma = await prisma.patient.upsert({
     where: { id: "patient-002" },
-    update: {},
+    update: { name: "فاطمة حسن" },
     create: {
       id:             "patient-002",
       doctorId:       doctorAhmed.id,
-      name:           "Fatma Hassan",
+      name:           "فاطمة حسن",
       phone:          "+201223456789",
       age:            61,
       gender:         "female",
@@ -93,11 +93,11 @@ async function main() {
 
   const patientKhaled = await prisma.patient.upsert({
     where: { id: "patient-003" },
-    update: {},
+    update: { name: "خالد إبراهيم" },
     create: {
       id:             "patient-003",
       doctorId:       doctorAhmed.id,
-      name:           "Khaled Ibrahim",
+      name:           "خالد إبراهيم",
       phone:          "+201334567890",
       age:            58,
       gender:         "male",
@@ -170,11 +170,11 @@ async function main() {
 
   const patientHassan = await prisma.patient.upsert({
     where: { id: "patient-008" },
-    update: {},
+    update: { name: "حسن علي" },
     create: {
       id:        "patient-008",
       doctorId:  doctorAhmed.id,
-      name:      "Hassan Ali",
+      name:      "حسن علي",
       phone:     "+201889012345",
       age:       45,
       gender:    "male",
@@ -200,11 +200,11 @@ async function main() {
 
   await prisma.patient.upsert({
     where: { id: "patient-010" },
-    update: {},
+    update: { name: "عمر مصطفى" },
     create: {
       id:        "patient-010",
       doctorId:  doctorAhmed.id,
-      name:      "Omar Mostafa",
+      name:      "عمر مصطفى",
       phone:     "+201011234567",
       age:       35,
       gender:    "male",

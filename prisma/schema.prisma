@@ -21,6 +21,7 @@ model Clinic {
   defaultFee        Int       @default(250)  // EGP
   isMultiDoctor     Boolean   @default(false)
   subscriptionTier  String    @default("professional") // starter | professional | growth
+  budgetJson        String?   // JSON { "rent": 8000, "utilities": 1000, ... }
   createdAt         DateTime  @default(now())
   doctors           Doctor[]
   expenses          Expense[]
@@ -145,6 +146,9 @@ model Expense {
   isPaid      Boolean  @default(false)
   usefulLifeMonths Int? // for equipment depreciation
   createdAt   DateTime @default(now())
+  vendorName    String?   // optional vendor/supplier name
+  receiptUrl    String?   // Supabase Storage URL
+  receiptName   String?   // original filename for display
 }
 
 // ─── AUDITOR LOG ─────────────────────────────────────────────
