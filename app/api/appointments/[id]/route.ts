@@ -15,19 +15,38 @@ export async function PATCH(req: Request, { params }: Context) {
 
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
-    select: { id: true },
+    select: { id: true, role: true, clinicId: true },
   })
   if (!doctor) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const { id } = await params
 
-  const existing = await prisma.appointment.findFirst({
-    where: { id, doctorId: doctor.id },
-    select: { id: true, notes: true },
-  })
+  // ── Scope: admin and receptionist can update any clinic appointment ────────
+  let existing: { id: string; notes: string | null } | null = null
+
+  if (doctor.role === "admin" || doctor.role === "receptionist") {
+    const clinicDoctors = await prisma.doctor.findMany({
+      where: { clinicId: doctor.clinicId },
+      select: { id: true },
+    })
+    const clinicDoctorIds = clinicDoctors.map((d) => d.id)
+
+    existing = await prisma.appointment.findFirst({
+      where: { id, doctorId: { in: clinicDoctorIds } },
+      select: { id: true, notes: true },
+    })
+  } else {
+    // Doctor: own appointments only
+    existing = await prisma.appointment.findFirst({
+      where: { id, doctorId: doctor.id },
+      select: { id: true, notes: true },
+    })
+  }
+
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const body: {
+    status?: string
     paymentStatus?: string
     paymentMethod?: string
     amountPaid?: number
@@ -44,12 +63,19 @@ export async function PATCH(req: Request, { params }: Context) {
   const updated = await prisma.appointment.update({
     where: { id },
     data: {
+      ...(body.status        !== undefined && { status:        body.status        }),
       ...(body.paymentStatus !== undefined && { paymentStatus: body.paymentStatus }),
       ...(body.paymentMethod !== undefined && { paymentMethod: body.paymentMethod }),
-      ...(body.amountPaid !== undefined && { amountPaid: body.amountPaid }),
+      ...(body.amountPaid    !== undefined && { amountPaid:    body.amountPaid    }),
       notes: updatedNotes,
     },
-    select: { id: true, paymentStatus: true, paymentMethod: true, amountPaid: true },
+    select: {
+      id: true,
+      status: true,
+      paymentStatus: true,
+      paymentMethod: true,
+      amountPaid: true,
+    },
   })
 
   return NextResponse.json(updated)

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head -3 \"C:\\\\Users\\\\omark\\\\Downloads\\\\ClinicOS\\\\clinic-os\\\\app\\\\\\(dashboard\\)\\\\patients\\\\page.tsx\")",
+      "Bash(npx prisma:*)"
+    ]
+  }
+}

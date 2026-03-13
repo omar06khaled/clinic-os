@@ -56,6 +56,19 @@ async function main() {
     },
   })
 
+  await prisma.doctor.upsert({
+    where: { email: "nour@clinic-os.dev" },
+    update: {},
+    create: {
+      id:       "doctor-nour",
+      clinicId: clinic.id,
+      name:     "Nour Hassan",
+      email:    "nour@clinic-os.dev",
+      role:     "receptionist",
+      isActive: true,
+    },
+  })
+
 
   // ── 3. Patients ──────────────────────────────────────────────
   const patientMohamed = await prisma.patient.upsert({
@@ -1072,6 +1085,12 @@ async function main() {
     patientsExpected: number
     expectedCashEGP: number
     reportedCashEGP: number
+    expectedInstapayEGP: number
+    reportedInstapayEGP: number
+    expectedFawryEGP: number
+    reportedFawryEGP: number
+    expectedInsuranceEGP: number
+    reportedInsuranceEGP: number
     discrepancyEGP: number
     discrepancyPct: number
     status: string
@@ -1080,78 +1099,115 @@ async function main() {
 
   const auditorLogs: AuditorInput[] = [
     {
-      id:               "audit-001",
-      doctorId:         doctorAhmed.id,
-      date:             new Date("2026-01-15"),
-      patientsExpected: 8,
-      expectedCashEGP:  2400,
-      reportedCashEGP:  2400,
-      discrepancyEGP:   0,
-      discrepancyPct:   0.0,
-      status:           "green",
-      notes:            "لا توجد فروق — كل المبالغ متطابقة",
+      // All cash, perfect match
+      id:                   "audit-001",
+      doctorId:             doctorAhmed.id,
+      date:                 new Date("2026-01-15"),
+      patientsExpected:     8,
+      expectedCashEGP:      2400,
+      reportedCashEGP:      2400,
+      expectedInstapayEGP:  0,
+      reportedInstapayEGP:  0,
+      expectedFawryEGP:     0,
+      reportedFawryEGP:     0,
+      expectedInsuranceEGP: 0,
+      reportedInsuranceEGP: 0,
+      discrepancyEGP:       0,
+      discrepancyPct:       0.0,
+      status:               "green",
+      notes:                "لا توجد فروق — كل المبالغ متطابقة",
     },
     {
-      id:               "audit-002",
-      doctorId:         doctorAhmed.id,
-      date:             new Date("2026-02-03"),
-      patientsExpected: 10,
-      expectedCashEGP:  3000,
-      reportedCashEGP:  2700,
-      discrepancyEGP:   300,
-      discrepancyPct:   10.0,
-      status:           "amber",
-      notes:            "نقص 300 جنيه، يحتمل خطأ في التسجيل أو تأجيل دفع",
+      // Mixed methods — cash under-reported (amber overall ~10%)
+      id:                   "audit-002",
+      doctorId:             doctorAhmed.id,
+      date:                 new Date("2026-02-03"),
+      patientsExpected:     10,
+      expectedCashEGP:      2400,
+      reportedCashEGP:      2100,
+      expectedInstapayEGP:  400,
+      reportedInstapayEGP:  400,
+      expectedFawryEGP:     200,
+      reportedFawryEGP:     200,
+      expectedInsuranceEGP: 0,
+      reportedInsuranceEGP: 0,
+      discrepancyEGP:       300,
+      discrepancyPct:       10.0,
+      status:               "amber",
+      notes:                "فارق 300 جنيه في النقدي، يحتمل خطأ في التسجيل أو تأجيل دفع",
     },
     {
-      id:               "audit-003",
-      doctorId:         doctorSara.id,
-      date:             new Date("2026-02-10"),
-      patientsExpected: 6,
-      expectedCashEGP:  2100,
-      reportedCashEGP:  2100,
-      discrepancyEGP:   0,
-      discrepancyPct:   0.0,
-      status:           "green",
-      notes:            "المبالغ متطابقة تماماً",
+      // All cash, perfect match (Dr. Sara)
+      id:                   "audit-003",
+      doctorId:             doctorSara.id,
+      date:                 new Date("2026-02-10"),
+      patientsExpected:     6,
+      expectedCashEGP:      2100,
+      reportedCashEGP:      2100,
+      expectedInstapayEGP:  0,
+      reportedInstapayEGP:  0,
+      expectedFawryEGP:     0,
+      reportedFawryEGP:     0,
+      expectedInsuranceEGP: 0,
+      reportedInsuranceEGP: 0,
+      discrepancyEGP:       0,
+      discrepancyPct:       0.0,
+      status:               "green",
+      notes:                "المبالغ متطابقة تماماً",
     },
     {
-      id:               "audit-004",
-      doctorId:         doctorAhmed.id,
-      date:             new Date("2026-02-26"),
-      patientsExpected: 9,
-      expectedCashEGP:  2700,
-      reportedCashEGP:  2100,
-      discrepancyEGP:   600,
-      discrepancyPct:   22.2,
-      status:           "red",
-      notes:            "فرق كبير 600 جنيه — يحتاج مراجعة عاجلة مع المساعد",
+      // Multi-method, notable discrepancy (red ~22%)
+      id:                   "audit-004",
+      doctorId:             doctorAhmed.id,
+      date:                 new Date("2026-02-26"),
+      patientsExpected:     9,
+      expectedCashEGP:      2400,
+      reportedCashEGP:      2000,
+      expectedInstapayEGP:  300,
+      reportedInstapayEGP:  100,
+      expectedFawryEGP:     0,
+      reportedFawryEGP:     0,
+      expectedInsuranceEGP: 0,
+      reportedInsuranceEGP: 0,
+      discrepancyEGP:       600,
+      discrepancyPct:       22.2,
+      status:               "red",
+      notes:                "فارق ملحوظ في النقدي وإنستاباي — يُنصح بمراجعة السجلات مع الاستقبال",
     },
     {
-      id:               "audit-005",
-      doctorId:         doctorAhmed.id,
-      date:             new Date("2026-03-03"),
-      patientsExpected: 7,
-      expectedCashEGP:  2100,
-      reportedCashEGP:  2050,
-      discrepancyEGP:   50,
-      discrepancyPct:   2.4,
-      status:           "amber",
-      notes:            "فرق بسيط 50 جنيه — يحتمل صرف كسور أو خطأ حساب",
+      // Small discrepancy (green ~2.4%)
+      id:                   "audit-005",
+      doctorId:             doctorAhmed.id,
+      date:                 new Date("2026-03-03"),
+      patientsExpected:     7,
+      expectedCashEGP:      2100,
+      reportedCashEGP:      2050,
+      expectedInstapayEGP:  0,
+      reportedInstapayEGP:  0,
+      expectedFawryEGP:     0,
+      reportedFawryEGP:     0,
+      expectedInsuranceEGP: 0,
+      reportedInsuranceEGP: 0,
+      discrepancyEGP:       50,
+      discrepancyPct:       2.4,
+      status:               "green",
+      notes:                "فارق بسيط 50 جنيه — يحتمل صرف كسور أو خطأ حساب",
     },
   ]
 
+  // Delete existing audit logs by ID then recreate — ensures per-method
+  // fields are always populated after a schema migration + re-seed.
+  await prisma.auditorLog.deleteMany({
+    where: { id: { in: auditorLogs.map((l) => l.id) } },
+  })
   for (const log of auditorLogs) {
-    await prisma.auditorLog.upsert({
-      where:  { id: log.id },
-      update: {},
-      create: log,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await prisma.auditorLog.create({ data: log as any })
   }
 
   // ── Summary ──────────────────────────────────────────────────
   console.log("✓ Clinic:       ", clinic.name)
-  console.log("✓ Doctors:       Dr. Ahmed Mahmoud (GP, admin) | Dr. Sara Hassan (Gynecology)")
+  console.log("✓ Doctors:       Dr. Ahmed Mahmoud (GP, admin) | Dr. Sara Hassan (Gynecology) | Nour Hassan (receptionist)")
   console.log("✓ Patients:      10")
   console.log("✓ Conditions:    3  (diabetes, hypertension, cardiac)")
   console.log("✓ Appointments:  21 (5 scheduled | 13 arrived | 1 noshow | 1 cancelled | 1 walkin)")

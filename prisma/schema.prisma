@@ -22,6 +22,7 @@ model Clinic {
   isMultiDoctor     Boolean   @default(false)
   subscriptionTier  String    @default("professional") // starter | professional | growth
   budgetJson        String?   // JSON { "rent": 8000, "utilities": 1000, ... }
+  openingHours      String?   // JSON { saturday: {open, from, to}, ... }
   createdAt         DateTime  @default(now())
   doctors           Doctor[]
   expenses          Expense[]
@@ -153,18 +154,24 @@ model Expense {
 
 // ─── AUDITOR LOG ─────────────────────────────────────────────
 model AuditorLog {
-  id               String   @id @default(cuid())
-  doctorId         String
-  doctor           Doctor   @relation(fields: [doctorId], references: [id])
-  date             DateTime
-  patientsExpected Int
-  expectedCashEGP  Int
-  reportedCashEGP  Int
-  discrepancyEGP   Int
-  discrepancyPct   Float
-  status           String   // green | amber | red
-  notes            String?
-  createdAt        DateTime @default(now())
+  id                   String   @id @default(cuid())
+  doctorId             String
+  doctor               Doctor   @relation(fields: [doctorId], references: [id])
+  date                 DateTime
+  patientsExpected     Int
+  expectedCashEGP      Int
+  reportedCashEGP      Int
+  expectedInstapayEGP  Int      @default(0)
+  reportedInstapayEGP  Int      @default(0)
+  expectedFawryEGP     Int      @default(0)
+  reportedFawryEGP     Int      @default(0)
+  expectedInsuranceEGP Int      @default(0)
+  reportedInsuranceEGP Int      @default(0)
+  discrepancyEGP       Int
+  discrepancyPct       Float
+  status               String   // green | amber | red
+  notes                String?
+  createdAt            DateTime @default(now())
 }
 model Lab {
   id        String   @id @default(cuid())

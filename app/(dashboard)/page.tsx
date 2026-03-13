@@ -6,6 +6,9 @@ import { StatCard } from "@/components/dashboard/stat-card"
 import { TodayTimeline, type SerializedAppointment } from "@/components/dashboard/today-timeline"
 import { QuickActionsBar } from "@/components/dashboard/quick-actions-bar"
 import { HealthScoreCard } from "@/components/dashboard/health-score-card"
+import { AdminOverview } from "@/components/admin/AdminOverview"
+import { ReceptionistDashboard, type ReceptionistAppointment } from "@/components/receptionist/ReceptionistDashboard"
+import type { AdminOverviewData } from "@/app/api/admin/overview/route"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -16,15 +19,169 @@ export default async function DashboardPage() {
 
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
-    select: { id: true, name: true, clinicId: true },
+    select: { id: true, name: true, clinicId: true, role: true },
   })
   if (!doctor) redirect("/login?error=not_provisioned")
 
-  // ── Date boundaries in Cairo time (Egypt = UTC+2, no DST since 2011) ──────
+  // ── Admin path — clinic-wide overview, no clinical records ────────────────
+  if (doctor.role === "admin") {
+    const cairoDateStr = new Date().toLocaleDateString("sv", { timeZone: "Africa/Cairo" })
+    const cairoMonthStr = cairoDateStr.slice(0, 7)
+    const [cairoYear, cairoMonth] = cairoMonthStr.split("-").map(Number)
+    const lastDay = new Date(cairoYear, cairoMonth, 0).getDate()
+
+    const todayStart = new Date(`${cairoDateStr}T00:00:00+02:00`)
+    const todayEnd   = new Date(`${cairoDateStr}T23:59:59+02:00`)
+    const monthStart = new Date(`${cairoMonthStr}-01T00:00:00+02:00`)
+    const monthEnd   = new Date(
+      `${cairoMonthStr}-${String(lastDay).padStart(2, "0")}T23:59:59+02:00`
+    )
+
+    const allDoctors = await prisma.doctor.findMany({
+      where: { clinicId: doctor.clinicId },
+      select: { id: true, name: true, specialty: true, isActive: true },
+      orderBy: { createdAt: "asc" },
+    })
+    const doctorIds = allDoctors.map((d) => d.id)
+
+    const [todayAppts, monthRevAgg, monthExpAgg, monthRevByDoctor] = await Promise.all([
+      prisma.appointment.findMany({
+        where: {
+          doctorId: { in: doctorIds },
+          scheduledAt: { gte: todayStart, lte: todayEnd },
+        },
+        select: {
+          id: true, doctorId: true, scheduledAt: true, status: true,
+          paymentStatus: true, amountPaid: true, visitType: true,
+          patient: { select: { name: true } },
+          // Deliberately NOT including `record` — admin must not see VisitRecord
+        },
+        orderBy: { scheduledAt: "asc" },
+      }),
+      prisma.appointment.aggregate({
+        where: {
+          doctorId: { in: doctorIds },
+          scheduledAt: { gte: monthStart, lte: monthEnd },
+          paymentStatus: "paid",
+        },
+        _sum: { amountPaid: true },
+      }),
+      prisma.expense.aggregate({
+        where: { clinicId: doctor.clinicId, date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amountEGP: true },
+      }),
+      prisma.appointment.groupBy({
+        by: ["doctorId"],
+        where: {
+          doctorId: { in: doctorIds },
+          scheduledAt: { gte: monthStart, lte: monthEnd },
+          paymentStatus: "paid",
+        },
+        _sum: { amountPaid: true },
+      }),
+    ])
+
+    const doctorNameMap = new Map(allDoctors.map((d) => [d.id, d.name]))
+    const revenueMap   = new Map(monthRevByDoctor.map((r) => [r.doctorId, r._sum.amountPaid ?? 0]))
+    const totalRevToday = todayAppts
+      .filter((a) => a.paymentStatus === "paid")
+      .reduce((s, a) => s + (a.amountPaid ?? 0), 0)
+
+    const adminData: AdminOverviewData = {
+      today: {
+        totalAppointments: todayAppts.length,
+        arrived: todayAppts.filter((a) => a.status === "arrived").length,
+        noshow:  todayAppts.filter((a) => a.status === "noshow").length,
+        revenueToday: totalRevToday,
+      },
+      month: {
+        totalRevenue:   monthRevAgg._sum.amountPaid ?? 0,
+        totalExpenses:  monthExpAgg._sum.amountEGP  ?? 0,
+        netProfit:     (monthRevAgg._sum.amountPaid ?? 0) - (monthExpAgg._sum.amountEGP ?? 0),
+      },
+      doctors: allDoctors.map((d) => {
+        const appts = todayAppts.filter((a) => a.doctorId === d.id)
+        return {
+          doctorId: d.id,
+          doctorName: d.name,
+          specialty: d.specialty,
+          isActive: d.isActive,
+          appointmentsToday: appts.length,
+          arrived: appts.filter((a) => a.status === "arrived").length,
+          revenueThisMonth: revenueMap.get(d.id) ?? 0,
+        }
+      }),
+      todayAppointments: todayAppts.map((a) => ({
+        id: a.id,
+        scheduledAt: a.scheduledAt.toISOString(),
+        status: a.status,
+        paymentStatus: a.paymentStatus,
+        amountPaid: a.amountPaid,
+        visitType: a.visitType,
+        patientName: a.patient.name,
+        doctorName: doctorNameMap.get(a.doctorId) ?? "—",
+      })),
+    }
+
+    return <AdminOverview data={adminData} />
+  }
+
+  // ── Receptionist path — all doctors' today appointments, no financial data ─
+  if (doctor.role === "receptionist") {
+    const cairoDateStr = new Date().toLocaleDateString("sv", { timeZone: "Africa/Cairo" })
+    const todayStart = new Date(`${cairoDateStr}T00:00:00+02:00`)
+    const todayEnd   = new Date(`${cairoDateStr}T23:59:59+02:00`)
+
+    const allDoctors = await prisma.doctor.findMany({
+      where: { clinicId: doctor.clinicId },
+      select: { id: true, name: true },
+      orderBy: { createdAt: "asc" },
+    })
+    const doctorIds = allDoctors.map((d) => d.id)
+    const doctorNameMap = new Map(allDoctors.map((d) => [d.id, d.name]))
+
+    const todayAppts = await prisma.appointment.findMany({
+      where: {
+        doctorId: { in: doctorIds },
+        scheduledAt: { gte: todayStart, lte: todayEnd },
+      },
+      select: {
+        id: true,
+        scheduledAt: true,
+        status: true,
+        visitType: true,
+        doctorId: true,
+        patient: { select: { name: true } },
+      },
+      orderBy: { scheduledAt: "asc" },
+    })
+
+    const receptionistAppts: ReceptionistAppointment[] = todayAppts.map((a) => ({
+      id: a.id,
+      scheduledAt: a.scheduledAt.toISOString(),
+      status: a.status,
+      visitType: a.visitType,
+      patientName: a.patient.name,
+      doctorName: doctorNameMap.get(a.doctorId) ?? "—",
+    }))
+
+    const todayLabel = new Date().toLocaleDateString("ar-EG", {
+      timeZone: "Africa/Cairo",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+
+    return <ReceptionistDashboard appointments={receptionistAppts} todayLabel={todayLabel} />
+  }
+
+  // ── Doctor path — single-doctor dashboard ─────────────────────────────────
+
   const cairoDateStr = new Date().toLocaleDateString("sv", {
     timeZone: "Africa/Cairo",
-  }) // "YYYY-MM-DD"
-  const cairoMonthStr = cairoDateStr.slice(0, 7) // "YYYY-MM"
+  })
+  const cairoMonthStr = cairoDateStr.slice(0, 7)
   const [cairoYear, cairoMonth] = cairoMonthStr.split("-").map(Number)
 
   const todayStart = new Date(`${cairoDateStr}T00:00:00+02:00`)
@@ -36,7 +193,6 @@ export default async function DashboardPage() {
     `${cairoMonthStr}-${String(lastDayOfMonth).padStart(2, "0")}T23:59:59+02:00`
   )
 
-  // ── Parallel data fetching ─────────────────────────────────────────────────
   const [
     todayAppointments,
     clinic,
@@ -45,7 +201,6 @@ export default async function DashboardPage() {
     monthRevenue,
     monthExpenses,
   ] = await Promise.all([
-    // Today's appointments (9am–9pm window is visual; query full day)
     prisma.appointment.findMany({
       where: {
         doctorId: doctor.id,
@@ -59,13 +214,11 @@ export default async function DashboardPage() {
       orderBy: { scheduledAt: "asc" },
     }),
 
-    // Clinic defaultFee for outstanding calculation
     prisma.clinic.findUnique({
       where: { id: doctor.clinicId },
       select: { defaultFee: true },
     }),
 
-    // No-shows prevented: confirmed appointments this month that arrived
     prisma.appointment.count({
       where: {
         doctorId: doctor.id,
@@ -75,7 +228,6 @@ export default async function DashboardPage() {
       },
     }),
 
-    // All outstanding: arrived but payment still pending
     prisma.appointment.count({
       where: {
         doctorId: doctor.id,
@@ -84,7 +236,6 @@ export default async function DashboardPage() {
       },
     }),
 
-    // Revenue this month (sum of amountPaid where paid)
     prisma.appointment.aggregate({
       where: {
         doctorId: doctor.id,
@@ -94,7 +245,6 @@ export default async function DashboardPage() {
       _sum: { amountPaid: true },
     }),
 
-    // Expenses this month
     prisma.expense.aggregate({
       where: {
         clinicId: doctor.clinicId,
@@ -104,7 +254,6 @@ export default async function DashboardPage() {
     }),
   ])
 
-  // ── Derived values ─────────────────────────────────────────────────────────
   const defaultFee = clinic?.defaultFee ?? 250
   const outstandingEGP = outstandingCount * defaultFee
 
@@ -119,7 +268,6 @@ export default async function DashboardPage() {
   const expensesThisMonth = monthExpenses._sum.amountEGP ?? 0
   const netProfitThisMonth = revenueThisMonth - expensesThisMonth
 
-  // ── Health score (0–100) ───────────────────────────────────────────────────
   const total = todayAppointments.length
   const fillRate = total > 0 ? (arrivedToday / total) * 100 : 0
   const paymentRate =
@@ -131,7 +279,6 @@ export default async function DashboardPage() {
     fillRate * 0.4 + paymentRate * 0.4 + (100 - noshowRate) * 0.2
   )
 
-  // ── Greeting ───────────────────────────────────────────────────────────────
   const firstName = doctor.name.split(" ")[0]
   const todayLabel = new Date().toLocaleDateString("ar-EG", {
     timeZone: "Africa/Cairo",
@@ -141,7 +288,6 @@ export default async function DashboardPage() {
     day: "numeric",
   })
 
-  // ── Serialize dates for Client Components ─────────────────────────────────
   const serializedAppointments: SerializedAppointment[] = todayAppointments.map((a) => ({
     id: a.id,
     scheduledAt: a.scheduledAt.toISOString(),

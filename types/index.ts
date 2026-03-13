@@ -99,3 +99,62 @@ export type PatientDetail = {
   totalSpent: number            // EGP
   lastVisitDate: string | null  // ISO string of most recent appointment.scheduledAt
 }
+
+// ─── Auditor types (Task 4.4) ─────────────────────────────────────────────────
+
+export type AuditorFilterType = "all" | "cash" | "instapay" | "fawry" | "insurance"
+
+export type AuditorMethodData = {
+  count: number
+  totalEGP: number
+}
+
+export type AuditorExpectedData = {
+  cash: AuditorMethodData
+  instapay: AuditorMethodData
+  fawry: AuditorMethodData
+  insurance: AuditorMethodData
+  patientsExpected: number
+}
+
+export type AuditorSectionResult = {
+  expected: number
+  reported: number
+  diff: number
+  /** null when expected = 0 (safe divide-by-zero guard) */
+  pct: number | null
+}
+
+export type AuditorDiscrepancyData = {
+  overall: AuditorSectionResult
+  cash: AuditorSectionResult
+  instapay: AuditorSectionResult
+  fawry: AuditorSectionResult
+  insurance: AuditorSectionResult
+  patientsExpected: number
+}
+
+export type AuditorLogRow = {
+  id: string
+  date: string           // ISO string
+  patientsExpected: number
+  expectedCashEGP: number
+  reportedCashEGP: number
+  expectedInstapayEGP: number
+  reportedInstapayEGP: number
+  expectedFawryEGP: number
+  reportedFawryEGP: number
+  expectedInsuranceEGP: number
+  reportedInsuranceEGP: number
+  discrepancyEGP: number
+  discrepancyPct: number
+  status: string         // green | amber | red
+  notes: string | null
+}
+
+export type AuditorReportedValues = {
+  cash: number
+  instapay: number
+  fawry: number
+  insurance: number
+}

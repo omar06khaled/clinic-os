@@ -17,7 +17,7 @@ export async function GET() {
   // ── 2. Look up doctor — never trust client-supplied doctorId ─────────────
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
-    select: { id: true },
+    select: { id: true, clinic: { select: { defaultFee: true } } },
   })
 
   if (!doctor) {
@@ -32,9 +32,10 @@ export async function GET() {
         select: { id: true, type: true, notes: true },
         orderBy: { addedAt: "asc" },
       },
+      _count: { select: { records: true } },
       records: {
-        select: { createdAt: true },
-        orderBy: { createdAt: "desc" },
+        select: { appointment: { select: { scheduledAt: true } } },
+        orderBy: { appointment: { scheduledAt: "desc" } },
         take: 1,
       },
       appointments: {
@@ -55,11 +56,10 @@ export async function GET() {
     isNew: p.isNew,
     createdAt: p.createdAt.toISOString(),
     conditions: p.conditions,
-    lastVisitDate: p.records[0]?.createdAt.toISOString() ?? null,
-    totalVisits: p.records.length,
-    // Sum of amountPaid on pending appointments (null amountPaid counts as 0)
+    lastVisitDate: p.records[0]?.appointment?.scheduledAt.toISOString() ?? null,
+    totalVisits: p._count.records,
     outstandingBalance: p.appointments.reduce(
-      (sum, a) => sum + (a.amountPaid ?? 0),
+      (sum, a) => sum + Math.max(0, doctor.clinic.defaultFee - (a.amountPaid ?? 0)),
       0
     ),
   }))

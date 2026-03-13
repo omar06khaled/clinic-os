@@ -1,42 +1,48 @@
-"use client"
+import { redirect } from "next/navigation"
+import { ShieldAlert } from "lucide-react"
+import { createClient } from "@/lib/supabase-server"
+import { prisma } from "@/lib/prisma"
+import { FinancialsTabs } from "@/components/financials/FinancialsTabs"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+export default async function FinancialsLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user?.email) redirect("/login")
 
-const TABS = [
-  { href: "/financials/revenue",  label: "الإيرادات"       },
-  { href: "/financials/expenses", label: "المصروفات"       },
-  { href: "/financials/pl",       label: "الأرباح والخسائر" },
-] as const
+  const doctor = await prisma.doctor.findUnique({
+    where: { email: user.email },
+    select: { role: true },
+  })
+  if (!doctor) redirect("/login?error=not_provisioned")
 
-export default function FinancialsLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  // ── Role guard — only admins can access financials ────────────────────────
+  if (doctor.role !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/30">
+          <ShieldAlert className="h-7 w-7 text-amber-600" />
+        </div>
+        <div className="space-y-1 max-w-sm">
+          <h2 className="text-lg font-semibold">Access Restricted</h2>
+          <p className="text-sm text-muted-foreground">
+            Only clinic administrators can access financial reports. Please
+            contact your admin if you need financial information.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab bar */}
-      <div className="border-b bg-card px-4 md:px-6 pt-4" dir="rtl">
-        <div className="flex gap-1">
-          {TABS.map(({ href, label }) => {
-            const active = pathname.startsWith(href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "relative px-4 py-2 text-sm font-medium transition-colors rounded-t-md",
-                  active
-                    ? "text-primary border-b-2 border-primary -mb-px bg-transparent"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                {label}
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+      {/* Tab bar — client component that reads pathname */}
+      <FinancialsTabs />
 
       {/* Page content */}
       <div className="flex-1 overflow-y-auto">

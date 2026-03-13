@@ -37,8 +37,8 @@ export default async function DashboardLayout({
         </main>
       </div>
 
-      {/* Mobile bottom tab bar */}
-      <BottomTabBar />
+      {/* Mobile bottom tab bar — role-aware */}
+      <BottomTabBar role={doctor.role} />
     </div>
   )
 }
