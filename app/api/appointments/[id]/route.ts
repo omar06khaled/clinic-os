@@ -6,6 +6,14 @@ interface Context {
   params: Promise<{ id: string }>
 }
 
+const VISIT_TYPE_LABELS: Record<string, string> = {
+  new: "زيارة جديدة",
+  followup: "متابعة",
+  chronic: "أمراض مزمنة",
+  urgent: "طارئ",
+  walkin: "زيارة مباشرة",
+}
+
 export async function PATCH(req: Request, { params }: Context) {
   const supabase = await createClient()
   const {
@@ -15,14 +23,35 @@ export async function PATCH(req: Request, { params }: Context) {
 
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
-    select: { id: true, role: true, clinicId: true },
+    select: { id: true, role: true, clinicId: true, name: true },
   })
   if (!doctor) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const { id } = await params
 
   // ── Scope: admin and receptionist can update any clinic appointment ────────
-  let existing: { id: string; notes: string | null } | null = null
+  type AppointmentSelect = {
+    id: string
+    notes: string | null
+    paymentStatus: string
+    amountPaid: number | null
+    visitType: string
+    complaint: string | null
+    doctorId: string
+    patient: { name: string; phone: string }
+  }
+  let existing: AppointmentSelect | null = null
+
+  const appointmentSelect = {
+    id: true,
+    notes: true,
+    paymentStatus: true,
+    amountPaid: true,
+    visitType: true,
+    complaint: true,
+    doctorId: true,
+    patient: { select: { name: true, phone: true } },
+  } as const
 
   if (doctor.role === "admin" || doctor.role === "receptionist") {
     const clinicDoctors = await prisma.doctor.findMany({
@@ -33,13 +62,13 @@ export async function PATCH(req: Request, { params }: Context) {
 
     existing = await prisma.appointment.findFirst({
       where: { id, doctorId: { in: clinicDoctorIds } },
-      select: { id: true, notes: true },
+      select: appointmentSelect,
     })
   } else {
     // Doctor: own appointments only
     existing = await prisma.appointment.findFirst({
       where: { id, doctorId: doctor.id },
-      select: { id: true, notes: true },
+      select: appointmentSelect,
     })
   }
 
@@ -77,6 +106,39 @@ export async function PATCH(req: Request, { params }: Context) {
       amountPaid: true,
     },
   })
+
+  // ── Auto-generate Invoice when transitioning to paid ──────────────────────
+  if (body.paymentStatus === "paid" && existing.paymentStatus !== "paid") {
+    const alreadyExists = await prisma.invoice.findUnique({
+      where: { appointmentId: id },
+      select: { id: true },
+    })
+
+    if (!alreadyExists) {
+      const amountEGP = body.amountPaid ?? existing.amountPaid ?? 0
+      const taxAmountEGP = Math.round(amountEGP * 0.14)
+      const totalAmountEGP = amountEGP + taxAmountEGP
+
+      const visitLabel = VISIT_TYPE_LABELS[existing.visitType] ?? existing.visitType
+      const serviceDescription = existing.complaint
+        ? `${visitLabel} — ${existing.complaint}`
+        : visitLabel
+
+      await prisma.invoice.create({
+        data: {
+          appointmentId: id,
+          doctorId: existing.doctorId,
+          patientName: existing.patient.name,
+          patientPhone: existing.patient.phone,
+          serviceDescription,
+          amountEGP,
+          taxAmountEGP,
+          totalAmountEGP,
+          etaStatus: "pending",
+        },
+      })
+    }
+  }
 
   return NextResponse.json(updated)
 }

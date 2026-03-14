@@ -283,12 +283,13 @@ export function AppointmentDetailPanel({
                 <Button
                   size="sm"
                   className="h-8 text-xs flex-1"
-                  disabled={isPending}
-                  onClick={() =>
+                  disabled={isPending || !newDate || !newTime}
+                  onClick={() => {
+                    if (!newDate || !newTime) return
                     run("reschedule", () =>
                       apptReschedule(apt.id, `${newDate}T${newTime}:00+02:00`)
                     )
-                  }
+                  }}
                 >
                   {pendingAction === "reschedule" ? "جاري..." : "تأكيد التعديل"}
                 </Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { RevenueRow } from "@/app/api/financials/revenue/route"
 
@@ -12,6 +12,7 @@ interface Props {
   onFilterChange: (f: FilterChip) => void
   defaultFee: number
   onMarkAsPaid: (row: RevenueRow) => void
+  onViewInvoice: (row: RevenueRow) => void
 }
 
 const FILTER_LABELS: { key: FilterChip; label: string }[] = [
@@ -26,6 +27,14 @@ const METHOD_LABELS: Record<string, string> = {
   instapay: "إنستاباي",
   fawry: "فوري",
   insurance: "تأمين",
+}
+
+// Distinct color per payment method
+const METHOD_BADGE_CLASSES: Record<string, string> = {
+  cash: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  instapay: "bg-blue-100 text-blue-700 border border-blue-200",
+  fawry: "bg-orange-100 text-orange-700 border border-orange-200",
+  insurance: "bg-purple-100 text-purple-700 border border-purple-200",
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -63,6 +72,7 @@ export function RevenueList({
   onFilterChange,
   defaultFee,
   onMarkAsPaid,
+  onViewInvoice,
 }: Props) {
   const filtered = rows.filter((r) => {
     if (filter === "all") return true
@@ -153,9 +163,14 @@ export function RevenueList({
                     </td>
                     <td className="px-4 py-3">
                       {row.paymentMethod ? (
-                        <Badge variant="outline" className="text-xs">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            METHOD_BADGE_CLASSES[row.paymentMethod] ??
+                            "bg-muted text-muted-foreground border border-border"
+                          }`}
+                        >
                           {METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
-                        </Badge>
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -180,17 +195,30 @@ export function RevenueList({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {row.paymentStatus === "pending" &&
-                        (row.status === "arrived" || row.status === "scheduled") && (
+                      <div className="flex items-center gap-1.5">
+                        {row.paymentStatus === "pending" &&
+                          (row.status === "arrived" || row.status === "scheduled") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => onMarkAsPaid(row)}
+                            >
+                              تسجيل دفع
+                            </Button>
+                          )}
+                        {row.paymentStatus === "paid" && (
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="h-7 text-xs"
-                            onClick={() => onMarkAsPaid(row)}
+                            variant="ghost"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                            title="عرض الفاتورة"
+                            onClick={() => onViewInvoice(row)}
                           >
-                            تسجيل دفع
+                            <FileText className="h-3.5 w-3.5" />
                           </Button>
                         )}
+                      </div>
                     </td>
                   </tr>
                 )

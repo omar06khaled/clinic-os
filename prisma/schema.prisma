@@ -43,6 +43,7 @@ model Doctor {
   patients     Patient[]
   auditorLogs  AuditorLog[]
   labs         Lab[]
+  invoices     Invoice[]
 }
 
 // ─── PATIENT ─────────────────────────────────────────────────
@@ -93,6 +94,7 @@ model Appointment {
   notes            String?
   createdAt        DateTime  @default(now())
   record           VisitRecord?
+  invoice          Invoice?
 }
 
 // ─── VISIT RECORD (EMR-lite) ─────────────────────────────────
@@ -181,4 +183,24 @@ model Lab {
   address   String?
   phone     String?
   createdAt DateTime @default(now())
+}
+
+// ─── INVOICE (ETA e-invoicing) ────────────────────────────
+model Invoice {
+  id                 String    @id @default(cuid())
+  appointmentId      String    @unique
+  appointment        Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId           String
+  doctor             Doctor    @relation(fields: [doctorId], references: [id])
+  patientName        String
+  patientPhone       String
+  serviceDescription String
+  amountEGP          Int
+  taxAmountEGP       Int       @default(0)
+  totalAmountEGP     Int
+  invoiceDate        DateTime  @default(now())
+  etaStatus          String    @default("pending") // pending | submitted | accepted | rejected
+  etaSubmittedAt     DateTime?
+  etaReferenceId     String?
+  createdAt          DateTime  @default(now())
 }

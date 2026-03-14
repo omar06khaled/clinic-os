@@ -8,6 +8,7 @@ import { RevenueStatCards } from "@/components/financials/RevenueStatCards"
 import { RevenueChart } from "@/components/financials/RevenueChart"
 import { RevenueList, type FilterChip } from "@/components/financials/RevenueList"
 import { MarkAsPaidModal } from "@/components/financials/MarkAsPaidModal"
+import { InvoiceModal } from "@/components/financials/InvoiceModal"
 import type {
   RevenueApiResponse,
   RevenueRow,
@@ -91,6 +92,7 @@ export default function RevenuePage() {
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState<FilterChip>("all")
   const [markingRow, setMarkingRow] = useState<RevenueRow | null>(null)
+  const [invoiceRow, setInvoiceRow] = useState<RevenueRow | null>(null)
 
   // ── Fetch data ──────────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
@@ -264,9 +266,9 @@ export default function RevenuePage() {
         </div>
 
         {/* Row 2: Date inputs */}
-        <div className="flex items-end gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 min-w-0 w-full">
           {/* Primary range */}
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 min-w-0 w-full sm:w-auto">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">من</Label>
               <input
@@ -276,7 +278,7 @@ export default function RevenuePage() {
                   setPrimaryFrom(e.target.value)
                   if (e.target.value > primaryTo) setPrimaryTo(e.target.value)
                 }}
-                className="h-8 rounded-md border bg-background px-2 text-sm [direction:ltr]"
+                className="h-8 w-full min-w-0 rounded-md border bg-background px-2 text-sm [direction:ltr]"
               />
             </div>
             <div className="space-y-1">
@@ -286,14 +288,14 @@ export default function RevenuePage() {
                 value={primaryTo}
                 min={primaryFrom}
                 onChange={(e) => setPrimaryTo(e.target.value)}
-                className="h-8 rounded-md border bg-background px-2 text-sm [direction:ltr]"
+                className="h-8 w-full min-w-0 rounded-md border bg-background px-2 text-sm [direction:ltr]"
               />
             </div>
           </div>
 
           {/* Compare range — only shown when compare is active */}
           {compareEnabled && (
-            <div className="flex items-end gap-2 border-r pr-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 border-r pr-4 min-w-0">
               <span className="mb-1.5 text-xs font-medium text-muted-foreground">
                 مقارنة:
               </span>
@@ -306,7 +308,7 @@ export default function RevenuePage() {
                     setCompareFrom(e.target.value)
                     if (e.target.value > compareTo) setCompareTo(e.target.value)
                   }}
-                  className="h-8 rounded-md border bg-background px-2 text-sm [direction:ltr]"
+                  className="h-8 w-full min-w-0 rounded-md border bg-background px-2 text-sm [direction:ltr]"
                 />
               </div>
               <div className="space-y-1">
@@ -316,7 +318,7 @@ export default function RevenuePage() {
                   value={compareTo}
                   min={compareFrom}
                   onChange={(e) => setCompareTo(e.target.value)}
-                  className="h-8 rounded-md border bg-background px-2 text-sm [direction:ltr]"
+                  className="h-8 w-full min-w-0 rounded-md border bg-background px-2 text-sm [direction:ltr]"
                 />
               </div>
             </div>
@@ -357,6 +359,7 @@ export default function RevenuePage() {
               onFilterChange={setFilter}
               defaultFee={data.defaultFee}
               onMarkAsPaid={setMarkingRow}
+              onViewInvoice={setInvoiceRow}
             />
           </div>
         </>
@@ -368,6 +371,12 @@ export default function RevenuePage() {
         defaultFee={data?.defaultFee ?? 250}
         onClose={() => setMarkingRow(null)}
         onSuccess={handlePaidSuccess}
+      />
+
+      {/* ── Invoice modal ───────────────────────────────────────────────────── */}
+      <InvoiceModal
+        row={invoiceRow}
+        onClose={() => setInvoiceRow(null)}
       />
     </div>
   )

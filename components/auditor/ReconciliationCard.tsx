@@ -103,6 +103,12 @@ export default function ReconciliationCard({
         <p className="text-xs text-muted-foreground">
           أدخل المبالغ التي أبلغت عنها الاستقبال لكل وسيلة دفع
         </p>
+        <div className="mt-1 flex items-start gap-1.5 rounded-md bg-purple-50 border border-purple-200 px-3 py-2">
+          <Shield className="h-3.5 w-3.5 shrink-0 text-purple-500 mt-0.5" />
+          <p className="text-xs text-purple-700">
+            مدفوعات التأمين مستبعدة من إجمالي التوفيق النقدي — لا يُجمع تأمين في الاستقبال.
+          </p>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -104,7 +104,7 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -120,41 +120,44 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
           return (
             <div
               key={key}
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2.5"
+              className="flex flex-col gap-2 rounded-lg border border-border px-3 py-2.5 overflow-hidden"
             >
-              {/* Open/Closed toggle */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={day.open}
-                disabled={!isAdmin}
-                onClick={() => isAdmin && toggleDay(key)}
-                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none disabled:cursor-not-allowed ${
-                  day.open ? "bg-primary" : "bg-muted-foreground/30"
-                }`}
-              >
-                <span
-                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
-                    day.open ? "translate-x-4" : "translate-x-0.5"
+              {/* Top line: toggle + day name */}
+              <div className="flex items-center gap-3">
+                {/* Open/Closed toggle */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={day.open}
+                  disabled={!isAdmin}
+                  onClick={() => isAdmin && toggleDay(key)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none disabled:cursor-not-allowed ${
+                    day.open ? "bg-primary" : "bg-muted-foreground/30"
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+                      day.open ? "translate-x-4" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
 
-              {/* Day name */}
-              <div className="w-28 shrink-0">
-                <p className="text-sm font-medium">{en}</p>
-                <p className="text-xs text-muted-foreground">{ar}</p>
+                {/* Day name */}
+                <div className="w-28 shrink-0">
+                  <p className="text-sm font-medium">{en}</p>
+                  <p className="text-xs text-muted-foreground">{ar}</p>
+                </div>
               </div>
 
-              {/* Time selectors — hidden when closed */}
+              {/* Bottom line: time selectors or Closed */}
               {day.open ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 min-w-0 w-full">
                   <Select
                     value={day.from}
                     onValueChange={(v) => setFrom(key, v)}
                     disabled={!isAdmin}
                   >
-                    <SelectTrigger className="h-8 w-24 text-xs">
+                    <SelectTrigger className="h-8 flex-1 min-w-0 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -165,13 +168,13 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-xs text-muted-foreground">–</span>
+                  <span className="px-1 shrink-0 text-xs text-muted-foreground">–</span>
                   <Select
                     value={day.to}
                     onValueChange={(v) => setTo(key, v)}
                     disabled={!isAdmin}
                   >
-                    <SelectTrigger className="h-8 w-24 text-xs">
+                    <SelectTrigger className="h-8 flex-1 min-w-0 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase-server"
 import { prisma } from "@/lib/prisma"
 import { Sidebar, BottomTabBar } from "@/components/dashboard-sidebar"
+import { OfflineBanner } from "@/components/offline-banner"
 
 export default async function DashboardLayout({
   children,
@@ -32,6 +33,7 @@ export default async function DashboardLayout({
 
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <OfflineBanner />
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>

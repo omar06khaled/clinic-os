@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { toast } from "sonner"
 import type { PatientDetail, ConditionDetail } from "@/types"
 import { CONDITION_LABELS, CONDITION_COLORS } from "@/components/patients/MedicalSnapshotPanel"
 import { Button } from "@/components/ui/button"
@@ -126,12 +127,14 @@ function ChronicConditionsSection({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: newType, notes: newNotes || null }),
       })
-      if (!res.ok) return
+      if (!res.ok) throw new Error()
       const created: ConditionDetail = await res.json()
       onConditionsUpdate([...conditions, created])
       setShowAddForm(false)
       setNewType("diabetes")
       setNewNotes("")
+    } catch {
+      toast.error("تعذّر إضافة الحالة المزمنة")
     } finally {
       setAdding(false)
     }
@@ -144,8 +147,10 @@ function ChronicConditionsSection({
       const res = await fetch(`/api/patients/${patientId}/conditions/${conditionId}`, {
         method: "DELETE",
       })
-      if (!res.ok) return
+      if (!res.ok) throw new Error()
       onConditionsUpdate(conditions.filter((c) => c.id !== conditionId))
+    } catch {
+      toast.error("تعذّر حذف الحالة المزمنة")
     } finally {
       setRemovingId(null)
     }
@@ -262,25 +267,33 @@ export function PatientOverviewTab({
 
   // ── Mutation helpers ───────────────────────────────────────────────────────
   async function saveAllergies(value: string) {
-    const res = await fetch(`/api/patients/${patientId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ allergies: value }),
-    })
-    if (!res.ok) return
-    const data = await res.json()
-    onPatientUpdate({ allergies: data.allergies })
+    try {
+      const res = await fetch(`/api/patients/${patientId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allergies: value }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      onPatientUpdate({ allergies: data.allergies })
+    } catch {
+      toast.error("تعذّر حفظ معلومات الحساسية")
+    }
   }
 
   async function savePermanentNotes(value: string) {
-    const res = await fetch(`/api/patients/${patientId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ permanentNotes: value }),
-    })
-    if (!res.ok) return
-    const data = await res.json()
-    onPatientUpdate({ permanentNotes: data.permanentNotes })
+    try {
+      const res = await fetch(`/api/patients/${patientId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ permanentNotes: value }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      onPatientUpdate({ permanentNotes: data.permanentNotes })
+    } catch {
+      toast.error("تعذّر حفظ الملاحظات الدائمة")
+    }
   }
 
   // ── Formatted last visit ───────────────────────────────────────────────────

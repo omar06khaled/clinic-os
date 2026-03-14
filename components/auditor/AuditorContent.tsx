@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { toast } from "sonner"
 import DisclaimerBanner from "@/components/auditor/DisclaimerBanner"
 import ReconciliationCard from "@/components/auditor/ReconciliationCard"
 import DiscrepancyResult from "@/components/auditor/DiscrepancyResult"
@@ -43,7 +44,7 @@ export function AuditorContent() {
     fetch("/api/auditor/expected")
       .then((r) => r.json())
       .then((d: AuditorExpectedData) => setExpectedData(d))
-      .catch(console.error)
+      .catch(() => toast.error("تعذّر تحميل البيانات المتوقعة"))
       .finally(() => setLoadingExpected(false))
   }, [])
 
@@ -53,7 +54,7 @@ export function AuditorContent() {
     fetch("/api/auditor")
       .then((r) => r.json())
       .then((d: AuditorLogRow[]) => setHistory(Array.isArray(d) ? d : []))
-      .catch(console.error)
+      .catch(() => toast.error("تعذّر تحميل سجل المطابقة"))
       .finally(() => setLoadingHistory(false))
   }, [])
 
@@ -71,8 +72,10 @@ export function AuditorContent() {
     const fawry     = computeSection(expectedData.fawry.totalEGP,     reported.fawry)
     const insurance = computeSection(expectedData.insurance.totalEGP, reported.insurance)
 
-    const totalExpected = cash.expected + instapay.expected + fawry.expected + insurance.expected
-    const totalReported = cash.reported + instapay.reported + fawry.reported + insurance.reported
+    // Insurance is excluded from the overall cash reconciliation total —
+    // insurance payments are settled externally and no cash is collected at the desk.
+    const totalExpected = cash.expected + instapay.expected + fawry.expected
+    const totalReported = cash.reported + instapay.reported + fawry.reported
     const totalDiff     = totalExpected - totalReported
     const overallPct    =
       totalExpected === 0
@@ -102,7 +105,7 @@ export function AuditorContent() {
     })
 
     try {
-      await fetch("/api/auditor", {
+      const res = await fetch("/api/auditor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,9 +124,10 @@ export function AuditorContent() {
           status:               getStatus(overallPct),
         }),
       })
+      if (!res.ok) throw new Error()
       fetchHistory()
     } catch {
-      // History refresh is best-effort — the result is still displayed
+      toast.error("تعذّر حفظ نتيجة المطابقة — النتيجة معروضة فقط ولم تُحفظ")
     }
 
     setCalculating(false)

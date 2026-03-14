@@ -196,6 +196,11 @@ export default function DiscrepancyResult({ result }: Props) {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Insurance exclusion notice */}
+          <p className="mb-3 text-xs text-muted-foreground">
+            * مدفوعات التأمين مستبعدة من هذا الإجمالي
+          </p>
+
           {isZeroExpected ? (
             <p className="text-sm text-muted-foreground">
               لا توجد تحصيلات متوقعة لهذه الفترة.

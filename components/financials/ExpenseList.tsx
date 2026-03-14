@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ReceiptUpload } from "@/components/financials/ReceiptUpload"
@@ -136,10 +137,11 @@ function ExpenseRow({
           staffRole: expense.staffRole,
         }),
       })
-      if (res.ok) {
-        localStorage.setItem(confirmKey, "1")
-        setConfirmedThisMonth(true)
-      }
+      if (!res.ok) throw new Error()
+      localStorage.setItem(confirmKey, "1")
+      setConfirmedThisMonth(true)
+    } catch {
+      toast.error("تعذّر تأكيد المصروف لهذا الشهر")
     } finally {
       setConfirming(false)
     }
@@ -153,10 +155,11 @@ function ExpenseRow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiptUrl: url, receiptName: name }),
       })
-      if (res.ok) {
-        const updated = await res.json()
-        onUpdate(updated as ExpenseRow)
-      }
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      onUpdate(updated as ExpenseRow)
+    } catch {
+      toast.error("تعذّر تحديث الإيصال")
     } finally {
       setPatchingReceipt(false)
     }

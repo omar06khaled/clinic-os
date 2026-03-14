@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Building2, Phone, MapPin, Banknote, Users, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,45 +64,53 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
 
   async function handleSaveClinic(e: React.FormEvent) {
     e.preventDefault()
+    if (!name.trim()) {
+      setClinicError("Clinic name is required")
+      return
+    }
     setSavingClinic(true)
     setClinicError(null)
     setClinicSaved(false)
-
-    const res = await fetch("/api/settings/clinic", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name.trim(),
-        address: address.trim(),
-        phone: phone.trim(),
-        defaultFee: parseInt(defaultFee, 10) || initialClinic.defaultFee,
-      }),
-    })
-
-    setSavingClinic(false)
-
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/settings/clinic", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          address: address.trim(),
+          phone: phone.trim(),
+          defaultFee: parseInt(defaultFee, 10) || initialClinic.defaultFee,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Failed to save")
+      }
       const updated = await res.json()
       setClinic(updated)
       setClinicSaved(true)
       setTimeout(() => setClinicSaved(false), 3000)
-    } else {
-      const err = await res.json()
-      setClinicError(err.error ?? "Failed to save")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to save"
+      setClinicError(msg)
+      toast.error(msg)
+    } finally {
+      setSavingClinic(false)
     }
   }
 
   async function handleToggleMultiDoctor(checked: boolean) {
     setIsMultiDoctor(checked)
-
-    const res = await fetch("/api/settings/clinic", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isMultiDoctor: checked }),
-    })
-
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/settings/clinic", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isMultiDoctor: checked }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
       setIsMultiDoctor(!checked) // revert on failure
+      toast.error("تعذّر تحديث وضع تعدد الأطباء")
     }
   }
 
