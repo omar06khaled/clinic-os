@@ -63,6 +63,8 @@ model Patient {
   appointments     Appointment[]
   records          VisitRecord[]
   conditions       ChronicCondition[]
+
+  @@index([doctorId])
 }
 
 // ─── CHRONIC CONDITION ───────────────────────────────────────
@@ -95,6 +97,10 @@ model Appointment {
   createdAt        DateTime  @default(now())
   record           VisitRecord?
   invoice          Invoice?
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([scheduledAt])
 }
 
 // ─── VISIT RECORD (EMR-lite) ─────────────────────────────────
@@ -121,6 +127,8 @@ model VisitRecord {
   voiceNoteText  String?   // AI transcription
   createdAt      DateTime  @default(now())
   attachments    Attachment[]
+
+  @@index([patientId])
 }
 
 // ─── ATTACHMENT ──────────────────────────────────────────────

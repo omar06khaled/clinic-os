@@ -2,10 +2,34 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { ChevronRight, ChevronLeft, Printer } from "lucide-react"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { PLSummaryCards } from "@/components/financials/PLSummaryCards"
-import { PLBarChart, type BarPeriod } from "@/components/financials/PLBarChart"
-import { PLDonutChart } from "@/components/financials/PLDonutChart"
+import type { BarPeriod } from "@/components/financials/PLBarChart"
+
+const PLBarChart = dynamic(
+  () => import("@/components/financials/PLBarChart").then((m) => ({ default: m.PLBarChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+        جاري تحميل الرسم...
+      </div>
+    ),
+  }
+)
+
+const PLDonutChart = dynamic(
+  () => import("@/components/financials/PLDonutChart").then((m) => ({ default: m.PLDonutChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+        جاري تحميل الرسم...
+      </div>
+    ),
+  }
+)
 import { PLTable } from "@/components/financials/PLTable"
 import type { PLApiResponse } from "@/app/api/financials/pl/route"
 

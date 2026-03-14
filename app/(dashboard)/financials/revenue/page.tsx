@@ -2,10 +2,22 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { ChevronRight, ChevronLeft, GitCompare } from "lucide-react"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RevenueStatCards } from "@/components/financials/RevenueStatCards"
-import { RevenueChart } from "@/components/financials/RevenueChart"
+
+const RevenueChart = dynamic(
+  () => import("@/components/financials/RevenueChart").then((m) => ({ default: m.RevenueChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+        جاري تحميل الرسم...
+      </div>
+    ),
+  }
+)
 import { RevenueList, type FilterChip } from "@/components/financials/RevenueList"
 import { MarkAsPaidModal } from "@/components/financials/MarkAsPaidModal"
 import { InvoiceModal } from "@/components/financials/InvoiceModal"

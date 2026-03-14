@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import { PatientRow } from "@/components/patients/PatientRow"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -109,11 +110,19 @@ interface PatientsViewProps {
 export function PatientsView({ patients }: PatientsViewProps) {
   const [search, setSearch] = useState("")
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all")
+  const parentRef = useRef<HTMLDivElement>(null)
 
   const filtered = useMemo(() => {
     const afterFilter = applyFilter(patients, activeFilter)
     return applySearch(afterFilter, search)
   }, [patients, activeFilter, search])
+
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 5,
+  })
 
   return (
     <div className="flex flex-col h-full" dir="rtl">
@@ -170,13 +179,26 @@ export function PatientsView({ patients }: PatientsViewProps) {
       </div>
 
       {/* ── Patient list ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={parentRef} className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
           <EmptyState hasPatients={patients.length > 0} />
         ) : (
-          <div className="divide-y">
-            {filtered.map((p) => (
-              <PatientRow key={p.id} patient={p} />
+          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
+            {virtualizer.getVirtualItems().map((virtualItem) => (
+              <div
+                key={virtualItem.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualItem.size}px`,
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
+                className="border-b border-border"
+              >
+                <PatientRow patient={filtered[virtualItem.index]} />
+              </div>
             ))}
           </div>
         )}

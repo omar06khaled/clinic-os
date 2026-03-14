@@ -2,11 +2,23 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
+import dynamic from "next/dynamic"
 import DisclaimerBanner from "@/components/auditor/DisclaimerBanner"
 import ReconciliationCard from "@/components/auditor/ReconciliationCard"
 import DiscrepancyResult from "@/components/auditor/DiscrepancyResult"
 import AuditorHistory from "@/components/auditor/AuditorHistory"
-import AuditorTrendChart from "@/components/auditor/AuditorTrendChart"
+
+const AuditorTrendChart = dynamic(
+  () => import("@/components/auditor/AuditorTrendChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+        جاري تحميل الرسم...
+      </div>
+    ),
+  }
+)
 import { getStatus } from "@/components/auditor/DiscrepancyResult"
 import type {
   AuditorExpectedData,

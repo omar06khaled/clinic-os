@@ -2,12 +2,24 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import type { PatientDetail, ConditionDetail, VisitRecordDetail } from "@/types"
 import { MedicalSnapshotPanel } from "@/components/patients/MedicalSnapshotPanel"
 import { PatientOverviewTab } from "@/components/patients/PatientOverviewTab"
 import { VisitHistoryTab } from "@/components/patients/VisitHistoryTab"
-import { ChronicTrackingTab } from "@/components/patients/ChronicTrackingTab"
 import { NewVisitPanel } from "@/components/patients/NewVisitPanel"
+
+const ChronicTrackingTab = dynamic(
+  () => import("@/components/patients/ChronicTrackingTab").then((m) => ({ default: m.ChronicTrackingTab })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+        جاري تحميل الرسم...
+      </div>
+    ),
+  }
+)
 
 // ── Avatar helpers (shared with PatientRow) ───────────────────────────────────
 
