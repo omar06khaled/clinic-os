@@ -123,12 +123,20 @@ export function PatientRow({ patient }: PatientRowProps) {
         <p className="text-xs text-muted-foreground mt-0.5">{patient.phone}</p>
       </div>
 
-      {/* Last visit */}
+      {/* Last visit + next visit */}
       <div className="hidden sm:block text-right min-w-[110px]">
         <p className="text-xs text-muted-foreground">آخر زيارة</p>
         <p className="text-xs font-medium">
           {formatLastVisit(patient.lastVisitDate)}
         </p>
+        {patient.nextVisitDate && (
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-end gap-1">
+            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {formatLastVisit(patient.nextVisitDate)}
+          </p>
+        )}
       </div>
 
       {/* Total visits */}

@@ -39,30 +39,46 @@ export async function GET() {
         take: 1,
       },
       appointments: {
-        where: { paymentStatus: "pending" },
-        select: { amountPaid: true },
+        where: {
+          OR: [
+            { paymentStatus: "pending" },
+            { status: "scheduled", scheduledAt: { gt: new Date() } },
+          ],
+        },
+        select: { amountPaid: true, paymentStatus: true, status: true, scheduledAt: true },
+        orderBy: { scheduledAt: "asc" },
       },
     },
     orderBy: { createdAt: "desc" },
   })
 
   // ── 4. Serialize ─────────────────────────────────────────────────────────
-  const data: PatientListItem[] = patients.map((p) => ({
-    id: p.id,
-    name: p.name,
-    phone: p.phone,
-    age: p.age,
-    gender: p.gender,
-    isNew: p.isNew,
-    createdAt: p.createdAt.toISOString(),
-    conditions: p.conditions,
-    lastVisitDate: p.records[0]?.appointment?.scheduledAt.toISOString() ?? null,
-    totalVisits: p._count.records,
-    outstandingBalance: p.appointments.reduce(
-      (sum, a) => sum + Math.max(0, doctor.clinic.defaultFee - (a.amountPaid ?? 0)),
-      0
-    ),
-  }))
+  const now = new Date()
+
+  const data: PatientListItem[] = patients.map((p) => {
+    const nextAppt = p.appointments.find(
+      (a) => a.status === "scheduled" && a.scheduledAt > now
+    )
+    return {
+      id: p.id,
+      name: p.name,
+      phone: p.phone,
+      age: p.age,
+      gender: p.gender,
+      isNew: p.isNew,
+      createdAt: p.createdAt.toISOString(),
+      conditions: p.conditions,
+      lastVisitDate: p.records[0]?.appointment?.scheduledAt.toISOString() ?? null,
+      nextVisitDate: nextAppt?.scheduledAt.toISOString() ?? null,
+      totalVisits: p._count.records,
+      outstandingBalance: p.appointments
+        .filter((a) => a.paymentStatus === "pending")
+        .reduce(
+          (sum, a) => sum + Math.max(0, doctor.clinic.defaultFee - (a.amountPaid ?? 0)),
+          0
+        ),
+    }
+  })
 
   return NextResponse.json(data)
 }

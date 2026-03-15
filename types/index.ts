@@ -18,6 +18,8 @@ export type PatientListItem = {
   conditions: PatientCondition[]
   /** ISO string of most recent VisitRecord.createdAt, or null if no visits */
   lastVisitDate: string | null
+  /** ISO string of next upcoming scheduled appointment, or null if none */
+  nextVisitDate: string | null
   /** Total number of VisitRecords */
   totalVisits: number
   /** Sum of amountPaid on Appointments where paymentStatus = "pending" (EGP) */

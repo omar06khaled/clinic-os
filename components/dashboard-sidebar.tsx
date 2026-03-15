@@ -78,18 +78,18 @@ function getRoleBadge(role: string) {
   if (role === "admin") {
     return {
       label: "Admin",
-      className: "shrink-0 px-1.5 py-0 text-[10px] border-amber-500/40 text-amber-600 bg-amber-50 dark:bg-amber-950/20",
+      className: "shrink-0 px-1.5 py-0 text-[10px] border-amber-400/30 text-amber-300 bg-amber-400/10",
     };
   }
   if (role === "receptionist") {
     return {
       label: "Receptionist",
-      className: "shrink-0 px-1.5 py-0 text-[10px] border-purple-500/40 text-purple-600 bg-purple-50 dark:bg-purple-950/20",
+      className: "shrink-0 px-1.5 py-0 text-[10px] border-purple-400/30 text-purple-300 bg-purple-400/10",
     };
   }
   return {
     label: "Doctor",
-    className: "shrink-0 px-1.5 py-0 text-[10px] border-blue-500/40 text-blue-600 bg-blue-50 dark:bg-blue-950/20",
+    className: "shrink-0 px-1.5 py-0 text-[10px] border-blue-400/30 text-blue-300 bg-blue-400/10",
   };
 }
 
@@ -123,7 +123,7 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
   const subtitle = getRoleSubtitle(doctor.role, doctor.specialty);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 bg-sidebar border-r border-sidebar-border">
+    <aside className="sidebar-nav hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 bg-sidebar border-r border-sidebar-border">
 
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-sidebar-border">
