@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { CalendarDays, UserX, Banknote, TrendingUp } from "lucide-react"
+import { getTranslations, getLocale } from "next-intl/server"
 import { createClient } from "@/lib/supabase-server"
 import { prisma } from "@/lib/prisma"
 import { StatCard } from "@/components/dashboard/stat-card"
@@ -22,6 +23,9 @@ export default async function DashboardPage() {
     select: { id: true, name: true, clinicId: true, role: true },
   })
   if (!doctor) redirect("/login?error=not_provisioned")
+
+  const locale = await getLocale()
+  const dateLocale = locale === "ar" ? "ar-EG" : "en-US"
 
   // ── Admin path — clinic-wide overview, no clinical records ────────────────
   if (doctor.role === "admin") {
@@ -54,7 +58,6 @@ export default async function DashboardPage() {
           id: true, doctorId: true, scheduledAt: true, status: true,
           paymentStatus: true, amountPaid: true, visitType: true,
           patient: { select: { name: true } },
-          // Deliberately NOT including `record` — admin must not see VisitRecord
         },
         orderBy: { scheduledAt: "asc" },
       }),
@@ -165,7 +168,7 @@ export default async function DashboardPage() {
       doctorName: doctorNameMap.get(a.doctorId) ?? "—",
     }))
 
-    const todayLabel = new Date().toLocaleDateString("ar-EG", {
+    const todayLabel = new Date().toLocaleDateString(dateLocale, {
       timeZone: "Africa/Cairo",
       weekday: "long",
       year: "numeric",
@@ -177,6 +180,8 @@ export default async function DashboardPage() {
   }
 
   // ── Doctor path — single-doctor dashboard ─────────────────────────────────
+
+  const t = await getTranslations("dashboard")
 
   const cairoDateStr = new Date().toLocaleDateString("sv", {
     timeZone: "Africa/Cairo",
@@ -280,7 +285,7 @@ export default async function DashboardPage() {
   )
 
   const firstName = doctor.name.split(" ")[0]
-  const todayLabel = new Date().toLocaleDateString("ar-EG", {
+  const todayLabel = new Date().toLocaleDateString(dateLocale, {
     timeZone: "Africa/Cairo",
     weekday: "long",
     year: "numeric",
@@ -309,9 +314,9 @@ export default async function DashboardPage() {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-0.5" dir="rtl">
+      <div className="flex flex-col gap-0.5">
         <h1 className="text-2xl font-semibold tracking-tight">
-          مرحباً، د. {firstName}
+          {t("greeting", { name: firstName })}
         </h1>
         <p className="text-sm text-muted-foreground">{todayLabel}</p>
       </div>
@@ -319,32 +324,32 @@ export default async function DashboardPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="مواعيد اليوم"
+          title={t("appointmentsToday")}
           value={todayAppointments.length}
           icon={CalendarDays}
           color="blue"
-          sub={`${arrivedToday} حضر · ${noshowToday} غاب`}
+          sub={t("arrivedSub", { arrived: arrivedToday, noshow: noshowToday })}
         />
         <StatCard
-          title="غياب تم تفاديه"
+          title={t("noshowsPrevented")}
           value={noshowsPreventedCount}
           icon={UserX}
           color="green"
-          sub="هذا الشهر عبر الواتساب"
+          sub={t("noshowsPreventedSub")}
         />
         <StatCard
-          title="مدفوعات معلقة"
+          title={t("outstandingPayments")}
           value={`${outstandingEGP.toLocaleString("en-US")} ج.م`}
           icon={Banknote}
           color="amber"
-          sub={`${outstandingCount} مريض`}
+          sub={t("outstandingPatientsSub", { count: outstandingCount })}
         />
         <StatCard
-          title="صافي الربح"
+          title={t("netProfit")}
           value={`${netProfitThisMonth.toLocaleString("en-US")} ج.م`}
           icon={TrendingUp}
           color={netProfitThisMonth >= 0 ? "green" : "red"}
-          sub="هذا الشهر"
+          sub={t("thisMonth")}
         />
       </div>
 

@@ -1,7 +1,8 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   LayoutDashboard,
   CalendarDays,
@@ -12,91 +13,67 @@ import {
   Settings,
   Stethoscope,
   UserCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { LanguageToggle } from "@/components/language-toggle"
 
-// ── Nav definitions ──────────────────────────────────────────────────────────
+// ── Nav definitions (label-free — resolved via i18n inside components) ───────
 
 const ADMIN_NAV = [
-  { href: "/",             label: "Dashboard",    icon: LayoutDashboard  },
-  { href: "/appointments", label: "Appointments", icon: CalendarDays     },
-  { href: "/patients",     label: "Patients",     icon: Users            },
-  { href: "/financials",   label: "Financials",   icon: CircleDollarSign },
-  { href: "/auditor",      label: "Auditor",      icon: ShieldCheck      },
-  { href: "/whatsapp",     label: "WhatsApp",     icon: MessageCircle    },
-  { href: "/settings",     label: "Settings",     icon: Settings         },
-] as const;
+  { href: "/",             key: "dashboard" as const,    icon: LayoutDashboard  },
+  { href: "/appointments", key: "appointments" as const, icon: CalendarDays     },
+  { href: "/patients",     key: "patients" as const,     icon: Users            },
+  { href: "/financials",   key: "financials" as const,   icon: CircleDollarSign },
+  { href: "/auditor",      key: "auditor" as const,      icon: ShieldCheck      },
+  { href: "/whatsapp",     key: "whatsapp" as const,     icon: MessageCircle    },
+  { href: "/settings",     key: "settings" as const,     icon: Settings         },
+]
 
 const DOCTOR_NAV = [
-  { href: "/",             label: "Dashboard",    icon: LayoutDashboard  },
-  { href: "/appointments", label: "Appointments", icon: CalendarDays     },
-  { href: "/patients",     label: "Patients",     icon: Users            },
-  { href: "/whatsapp",     label: "WhatsApp",     icon: MessageCircle    },
-  { href: "/settings",     label: "Settings",     icon: Settings         },
-] as const;
+  { href: "/",             key: "dashboard" as const,    icon: LayoutDashboard  },
+  { href: "/appointments", key: "appointments" as const, icon: CalendarDays     },
+  { href: "/patients",     key: "patients" as const,     icon: Users            },
+  { href: "/whatsapp",     key: "whatsapp" as const,     icon: MessageCircle    },
+  { href: "/settings",     key: "settings" as const,     icon: Settings         },
+]
 
 const RECEPTIONIST_NAV = [
-  { href: "/",             label: "Dashboard",    icon: LayoutDashboard  },
-  { href: "/appointments", label: "Appointments", icon: CalendarDays     },
-  { href: "/patients",     label: "Patients",     icon: Users            },
-  { href: "/whatsapp",     label: "WhatsApp",     icon: MessageCircle    },
-  { href: "/settings",     label: "Settings",     icon: Settings         },
-] as const;
+  { href: "/",             key: "dashboard" as const,    icon: LayoutDashboard  },
+  { href: "/appointments", key: "appointments" as const, icon: CalendarDays     },
+  { href: "/patients",     key: "patients" as const,     icon: Users            },
+  { href: "/whatsapp",     key: "whatsapp" as const,     icon: MessageCircle    },
+  { href: "/settings",     key: "settings" as const,     icon: Settings         },
+]
 
 const ADMIN_BOTTOM = [
-  { href: "/",             label: "Dashboard",  icon: LayoutDashboard  },
-  { href: "/appointments", label: "Appts",      icon: CalendarDays     },
-  { href: "/patients",     label: "Patients",   icon: Users            },
-  { href: "/financials",   label: "Financials", icon: CircleDollarSign },
-  { href: "/settings",     label: "Settings",   icon: Settings         },
-] as const;
+  { href: "/",             key: "dashboard" as const,    abbrevKey: "dashboard" as const,     icon: LayoutDashboard  },
+  { href: "/appointments", key: "appointments" as const, abbrevKey: "appts" as const,         icon: CalendarDays     },
+  { href: "/patients",     key: "patients" as const,     abbrevKey: "patients" as const,      icon: Users            },
+  { href: "/financials",   key: "financials" as const,   abbrevKey: "financials" as const,    icon: CircleDollarSign },
+  { href: "/settings",     key: "settings" as const,     abbrevKey: "settings" as const,      icon: Settings         },
+]
 
 const DOCTOR_BOTTOM = [
-  { href: "/",             label: "Dashboard", icon: LayoutDashboard },
-  { href: "/appointments", label: "Appts",     icon: CalendarDays    },
-  { href: "/patients",     label: "Patients",  icon: Users           },
-  { href: "/whatsapp",     label: "WhatsApp",  icon: MessageCircle   },
-  { href: "/settings",     label: "Settings",  icon: Settings        },
-] as const;
+  { href: "/",             key: "dashboard" as const,    abbrevKey: "dashboard" as const,     icon: LayoutDashboard },
+  { href: "/appointments", key: "appointments" as const, abbrevKey: "appts" as const,         icon: CalendarDays    },
+  { href: "/patients",     key: "patients" as const,     abbrevKey: "patients" as const,      icon: Users           },
+  { href: "/whatsapp",     key: "whatsapp" as const,     abbrevKey: "whatsapp" as const,      icon: MessageCircle   },
+  { href: "/settings",     key: "settings" as const,     abbrevKey: "settings" as const,      icon: Settings        },
+]
 
 const RECEPTIONIST_BOTTOM = [
-  { href: "/",             label: "Dashboard", icon: LayoutDashboard },
-  { href: "/appointments", label: "Appts",     icon: CalendarDays    },
-  { href: "/patients",     label: "Patients",  icon: Users           },
-  { href: "/whatsapp",     label: "WhatsApp",  icon: MessageCircle   },
-  { href: "/settings",     label: "Settings",  icon: Settings        },
-] as const;
+  { href: "/",             key: "dashboard" as const,    abbrevKey: "dashboard" as const,     icon: LayoutDashboard },
+  { href: "/appointments", key: "appointments" as const, abbrevKey: "appts" as const,         icon: CalendarDays    },
+  { href: "/patients",     key: "patients" as const,     abbrevKey: "patients" as const,      icon: Users           },
+  { href: "/whatsapp",     key: "whatsapp" as const,     abbrevKey: "whatsapp" as const,      icon: MessageCircle   },
+  { href: "/settings",     key: "settings" as const,     abbrevKey: "settings" as const,      icon: Settings        },
+]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
-}
-
-function getRoleBadge(role: string) {
-  if (role === "admin") {
-    return {
-      label: "Admin",
-      className: "shrink-0 px-1.5 py-0 text-[10px] border-amber-400/30 text-amber-300 bg-amber-400/10",
-    };
-  }
-  if (role === "receptionist") {
-    return {
-      label: "Receptionist",
-      className: "shrink-0 px-1.5 py-0 text-[10px] border-purple-400/30 text-purple-300 bg-purple-400/10",
-    };
-  }
-  return {
-    label: "Doctor",
-    className: "shrink-0 px-1.5 py-0 text-[10px] border-blue-400/30 text-blue-300 bg-blue-400/10",
-  };
-}
-
-function getRoleSubtitle(role: string, specialty: string | null) {
-  if (role === "admin") return "Clinic Administrator";
-  if (role === "receptionist") return "Receptionist";
-  return specialty ?? "General Practice";
+  return href === "/" ? pathname === "/" : pathname.startsWith(href)
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -110,17 +87,38 @@ type DoctorInfo = {
 // ── Sidebar ──────────────────────────────────────────────────────────────────
 
 export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const tNav = useTranslations("nav")
+  const tSidebar = useTranslations("sidebar")
 
   const navLinks =
     doctor.role === "admin"
       ? ADMIN_NAV
       : doctor.role === "receptionist"
         ? RECEPTIONIST_NAV
-        : DOCTOR_NAV;
+        : DOCTOR_NAV
 
-  const badge = getRoleBadge(doctor.role);
-  const subtitle = getRoleSubtitle(doctor.role, doctor.specialty);
+  // Role badge
+  const badgeClassName =
+    doctor.role === "admin"
+      ? "shrink-0 px-1.5 py-0 text-[10px] border-amber-400/30 text-amber-300 bg-amber-400/10"
+      : doctor.role === "receptionist"
+        ? "shrink-0 px-1.5 py-0 text-[10px] border-purple-400/30 text-purple-300 bg-purple-400/10"
+        : "shrink-0 px-1.5 py-0 text-[10px] border-blue-400/30 text-blue-300 bg-blue-400/10"
+
+  const badgeLabel =
+    doctor.role === "admin"
+      ? tSidebar("roleAdmin")
+      : doctor.role === "receptionist"
+        ? tSidebar("roleReceptionist")
+        : tSidebar("roleDoctor")
+
+  const subtitle =
+    doctor.role === "admin"
+      ? tSidebar("subtitleAdmin")
+      : doctor.role === "receptionist"
+        ? tSidebar("subtitleReceptionist")
+        : doctor.specialty ?? tSidebar("subtitleDoctor")
 
   return (
     <aside className="sidebar-nav hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 bg-sidebar border-r border-sidebar-border">
@@ -137,8 +135,8 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-        {navLinks.map(({ href, label, icon: Icon }) => {
-          const active = isActive(pathname, href);
+        {navLinks.map(({ href, key, icon: Icon }) => {
+          const active = isActive(pathname, href)
           return (
             <Link
               key={href}
@@ -158,14 +156,14 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
                     : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
                 )}
               />
-              {label}
+              {tNav(key)}
             </Link>
-          );
+          )
         })}
       </nav>
 
       {/* Signed-in user card — name + role badge */}
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-sidebar-border p-3 space-y-0.5">
         <div className="flex items-center gap-3 rounded-md px-2 py-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent">
             <UserCircle className="h-5 w-5 text-sidebar-foreground/70" />
@@ -175,8 +173,8 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
               <span className="truncate text-sm font-medium text-sidebar-foreground">
                 {doctor.name}
               </span>
-              <Badge variant="outline" className={badge.className}>
-                {badge.label}
+              <Badge variant="outline" className={badgeClassName}>
+                {badgeLabel}
               </Badge>
             </div>
             <span className="truncate text-xs text-sidebar-foreground/50">
@@ -184,27 +182,34 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
             </span>
           </div>
         </div>
+
+        {/* Language toggle */}
+        <LanguageToggle />
       </div>
     </aside>
-  );
+  )
 }
 
 // ── Bottom tab bar (mobile) ──────────────────────────────────────────────────
 
 export function BottomTabBar({ role = "doctor" }: { role?: string }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const tNav = useTranslations("nav")
+  const tSidebar = useTranslations("sidebar")
 
   const tabs =
     role === "admin"
       ? ADMIN_BOTTOM
       : role === "receptionist"
         ? RECEPTIONIST_BOTTOM
-        : DOCTOR_BOTTOM;
+        : DOCTOR_BOTTOM
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-16 items-stretch bg-sidebar border-t border-sidebar-border">
-      {tabs.map(({ href, label, icon: Icon }) => {
-        const active = isActive(pathname, href);
+      {tabs.map(({ href, key, abbrevKey, icon: Icon }) => {
+        const active = isActive(pathname, href)
+        // Use sidebar namespace for abbreviations, nav namespace for the key
+        const label = abbrevKey === "appts" ? tSidebar("appts") : tNav(key)
         return (
           <Link
             key={href}
@@ -219,8 +224,8 @@ export function BottomTabBar({ role = "doctor" }: { role?: string }) {
             <Icon className="h-5 w-5 shrink-0" />
             <span className="leading-none">{label}</span>
           </Link>
-        );
+        )
       })}
     </nav>
-  );
+  )
 }

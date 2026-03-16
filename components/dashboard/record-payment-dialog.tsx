@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export function RecordPaymentDialog({
   open,
   onOpenChange,
 }: RecordPaymentDialogProps) {
+  const t = useTranslations("dashboard")
   const [amount, setAmount] = useState(String(defaultAmount))
   const [method, setMethod] = useState("cash")
   const [isPending, startTransition] = useTransition()
@@ -50,14 +52,14 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm" dir="rtl">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>تسجيل دفعة — {patientName}</DialogTitle>
+          <DialogTitle>{t("recordPaymentTitle", { name: patientName })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label htmlFor="pay-amount">المبلغ (ج.م)</Label>
+            <Label htmlFor="pay-amount">{t("amountLabel")}</Label>
             <Input
               id="pay-amount"
               type="number"
@@ -70,16 +72,16 @@ export function RecordPaymentDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="pay-method">طريقة الدفع</Label>
+            <Label htmlFor="pay-method">{t("paymentMethodLabel")}</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger id="pay-method">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">كاش</SelectItem>
-                <SelectItem value="instapay">إنستاباي</SelectItem>
-                <SelectItem value="fawry">فوري</SelectItem>
-                <SelectItem value="insurance">تأمين</SelectItem>
+                <SelectItem value="cash">{t("cash")}</SelectItem>
+                <SelectItem value="instapay">{t("instapay")}</SelectItem>
+                <SelectItem value="fawry">{t("fawry")}</SelectItem>
+                <SelectItem value="insurance">{t("insurance")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -91,10 +93,10 @@ export function RecordPaymentDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            إلغاء
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? "جاري الحفظ..." : "تأكيد الدفع"}
+            {isPending ? t("saving") : t("confirmPayment")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,11 +1,13 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Plus, UserPlus, Receipt, MessageSquare } from "lucide-react"
 
 export function QuickActionsBar() {
   const router = useRouter()
+  const t = useTranslations("dashboard")
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -15,7 +17,7 @@ export function QuickActionsBar() {
         onClick={() => router.push("/appointments/new")}
       >
         <Plus className="h-4 w-4" />
-        موعد جديد
+        {t("addAppointment")}
       </Button>
 
       <Button
@@ -25,7 +27,7 @@ export function QuickActionsBar() {
         onClick={() => router.push("/patients/new")}
       >
         <UserPlus className="h-4 w-4" />
-        مريض جديد
+        {t("newPatient")}
       </Button>
 
       <Button
@@ -35,7 +37,7 @@ export function QuickActionsBar() {
         onClick={() => router.push("/financials/new-expense")}
       >
         <Receipt className="h-4 w-4" />
-        تسجيل مصروف
+        {t("addExpense")}
       </Button>
 
       <Button
@@ -45,7 +47,7 @@ export function QuickActionsBar() {
         onClick={() => router.push("/whatsapp")}
       >
         <MessageSquare className="h-4 w-4" />
-        واتساب
+        {t("whatsappAction")}
       </Button>
     </div>
   )

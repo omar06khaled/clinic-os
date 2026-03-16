@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -41,14 +42,6 @@ interface TodayTimelineProps {
   defaultFee: number
 }
 
-const VISIT_TYPE_LABELS: Record<string, string> = {
-  new: "جديد",
-  followup: "متابعة",
-  chronic: "مزمن",
-  urgent: "طارئ",
-  walkin: "بدون موعد",
-}
-
 const VISIT_TYPE_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
   followup: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
@@ -79,6 +72,7 @@ interface AppointmentCardProps {
 
 function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
   const router = useRouter()
+  const t = useTranslations("dashboard")
   const [isPending, startTransition] = useTransition()
   const [pendingAction, setPendingAction] = useState<"arrived" | "noshow" | null>(null)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -99,6 +93,15 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
     })
   }
 
+  // Visit type label map (resolved at render time)
+  const visitTypeLabel: Record<string, string> = {
+    new: t("visitTypeNew"),
+    followup: t("visitTypeFollowup"),
+    chronic: t("visitTypeChronic"),
+    urgent: t("visitTypeUrgent"),
+    walkin: t("visitTypeWalkin"),
+  }
+
   return (
     <>
       <div
@@ -110,7 +113,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
       >
         <div className="flex items-start justify-between gap-3 flex-wrap">
           {/* Patient info */}
-          <div className="flex items-start gap-3 min-w-0" dir="rtl">
+          <div className="flex items-start gap-3 min-w-0">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
               <User className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -120,17 +123,16 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                 <span className="font-semibold text-sm">{apt.patient.name}</span>
                 {apt.patient.isNew && (
                   <span className="inline-flex items-center rounded-full bg-blue-100 px-1.5 py-0 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                    جديد
+                    {t("newPatientBadge")}
                   </span>
                 )}
                 <span
                   className={cn(
                     "inline-flex items-center rounded-full px-1.5 py-0 text-[10px] font-medium",
-                    VISIT_TYPE_COLORS[apt.visitType] ??
-                      "bg-gray-100 text-gray-700"
+                    VISIT_TYPE_COLORS[apt.visitType] ?? "bg-gray-100 text-gray-700"
                   )}
                 >
-                  {VISIT_TYPE_LABELS[apt.visitType] ?? apt.visitType}
+                  {visitTypeLabel[apt.visitType] ?? apt.visitType}
                 </span>
               </div>
 
@@ -149,7 +151,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                 </span>
                 {apt.confirmStatus === "confirmed" && (
                   <span className="text-[10px] text-green-600 font-medium dark:text-green-400">
-                    · مؤكد
+                    {t("confirmedBadge")}
                   </span>
                 )}
               </div>
@@ -171,11 +173,11 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                 })}
               >
                 {apt.status === "arrived"
-                  ? "حضر"
+                  ? t("statusArrived")
                   : apt.status === "noshow"
-                    ? "لم يحضر"
+                    ? t("statusNoshow")
                     : apt.status === "cancelled"
-                      ? "ملغي"
+                      ? t("statusCancelled")
                       : apt.status}
               </Badge>
             )}
@@ -187,8 +189,8 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                 className="text-xs border-green-400 text-green-700 dark:text-green-400"
               >
                 {apt.amountPaid != null
-                  ? `مدفوع · ${apt.amountPaid.toLocaleString("en-US")} ج.م`
-                  : "مدفوع"}
+                  ? t("paidBadge", { amount: apt.amountPaid.toLocaleString("en-US") })
+                  : t("paidSimple")}
               </Badge>
             )}
 
@@ -204,7 +206,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                     onClick={handleMarkArrived}
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    {pendingAction === "arrived" ? "..." : "حضر"}
+                    {pendingAction === "arrived" ? "..." : t("markArrived")}
                   </Button>
                   <Button
                     size="sm"
@@ -214,7 +216,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                     onClick={handleMarkNoShow}
                   >
                     <XCircle className="h-3.5 w-3.5" />
-                    {pendingAction === "noshow" ? "..." : "لم يحضر"}
+                    {pendingAction === "noshow" ? "..." : t("markNoShow")}
                   </Button>
                 </>
               )}
@@ -228,7 +230,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                   onClick={() => setPaymentOpen(true)}
                 >
                   <Banknote className="h-3.5 w-3.5" />
-                  تسجيل دفعة
+                  {t("recordPaymentAction")}
                 </Button>
               )}
 
@@ -241,7 +243,7 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
                   onClick={() => router.push(`/patients/${apt.patient.id}`)}
                 >
                   <FileText className="h-3.5 w-3.5" />
-                  الملف
+                  {t("openRecord")}
                 </Button>
               )}
             </div>
@@ -261,12 +263,14 @@ function AppointmentCard({ apt, defaultFee }: AppointmentCardProps) {
 }
 
 export function TodayTimeline({ appointments, defaultFee }: TodayTimelineProps) {
+  const t = useTranslations("dashboard")
+
   if (appointments.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium" dir="rtl">
-            جدول اليوم
+          <CardTitle className="text-sm font-medium">
+            {t("todayTimeline")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -274,8 +278,8 @@ export function TodayTimeline({ appointments, defaultFee }: TodayTimelineProps) 
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <CalendarX className="h-6 w-6 text-muted-foreground/50" />
             </div>
-            <p className="text-sm text-muted-foreground" dir="rtl">
-              لا يوجد مواعيد مجدولة لهذا اليوم
+            <p className="text-sm text-muted-foreground">
+              {t("noAppointments")}
             </p>
           </div>
         </CardContent>
@@ -290,14 +294,24 @@ export function TodayTimeline({ appointments, defaultFee }: TodayTimelineProps) 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between" dir="rtl">
+        <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            جدول اليوم · {appointments.length} موعد
+            {t("todayTimelineCount", { count: appointments.length })}
           </CardTitle>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {arrived > 0 && <span className="text-green-600">{arrived} حضر</span>}
-            {scheduled > 0 && <span>{scheduled} قادم</span>}
-            {noshow > 0 && <span className="text-red-500">{noshow} غاب</span>}
+            {arrived > 0 && (
+              <span className="text-green-600">
+                {t("arrivedCount", { count: arrived })}
+              </span>
+            )}
+            {scheduled > 0 && (
+              <span>{t("upcomingCount", { count: scheduled })}</span>
+            )}
+            {noshow > 0 && (
+              <span className="text-red-500">
+                {t("noshowCount", { count: noshow })}
+              </span>
+            )}
           </div>
         </div>
       </CardHeader>
