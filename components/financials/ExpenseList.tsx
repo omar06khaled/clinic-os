@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ReceiptUpload } from "@/components/financials/ReceiptUpload"
@@ -39,30 +40,30 @@ interface Props {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  rent: <Building2 className="h-4 w-4" />,
+  rent:      <Building2 className="h-4 w-4" />,
   utilities: <Zap className="h-4 w-4" />,
-  supplies: <ShoppingCart className="h-4 w-4" />,
-  salary: <User className="h-4 w-4" />,
+  supplies:  <ShoppingCart className="h-4 w-4" />,
+  salary:    <User className="h-4 w-4" />,
   equipment: <Monitor className="h-4 w-4" />,
-  other: <Tag className="h-4 w-4" />,
+  other:     <Tag className="h-4 w-4" />,
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  rent: "bg-blue-100 text-blue-700",
+  rent:      "bg-blue-100 text-blue-700",
   utilities: "bg-yellow-100 text-yellow-700",
-  supplies: "bg-green-100 text-green-700",
-  salary: "bg-purple-100 text-purple-700",
+  supplies:  "bg-green-100 text-green-700",
+  salary:    "bg-purple-100 text-purple-700",
   equipment: "bg-slate-100 text-slate-700",
-  other: "bg-orange-100 text-orange-700",
+  other:     "bg-orange-100 text-orange-700",
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  rent: "إيجار",
-  utilities: "مرافق",
-  supplies: "مستلزمات",
-  salary: "رواتب",
-  equipment: "معدات",
-  other: "أخرى",
+const CATEGORY_TKEYS: Record<string, string> = {
+  rent:      "catRent",
+  utilities: "catUtilities",
+  supplies:  "catSupplies",
+  salary:    "catSalary",
+  equipment: "catEquipment",
+  other:     "catOther",
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -103,6 +104,7 @@ function ExpenseRow({
   expense: ExpenseRow
   onUpdate: (updated: ExpenseRow) => void
 }) {
+  const t = useTranslations("financials")
   const monthKey = currentMonthKey()
   const confirmKey = `rcfm_${expense.id}_${monthKey}`
   const [confirmedThisMonth, setConfirmedThisMonth] = useState(false)
@@ -141,7 +143,7 @@ function ExpenseRow({
       localStorage.setItem(confirmKey, "1")
       setConfirmedThisMonth(true)
     } catch {
-      toast.error("تعذّر تأكيد المصروف لهذا الشهر")
+      toast.error(t("expToastConfirmError"))
     } finally {
       setConfirming(false)
     }
@@ -159,7 +161,7 @@ function ExpenseRow({
       const updated = await res.json()
       onUpdate(updated as ExpenseRow)
     } catch {
-      toast.error("تعذّر تحديث الإيصال")
+      toast.error(t("expToastReceiptError"))
     } finally {
       setPatchingReceipt(false)
     }
@@ -192,7 +194,7 @@ function ExpenseRow({
                 className="h-4 gap-1 px-1.5 text-[10px] text-blue-600 border-blue-200"
               >
                 <RefreshCcw className="h-2.5 w-2.5" />
-                متكرر
+                {t("expRecurringBadge")}
               </Badge>
             )}
             <Badge
@@ -202,14 +204,14 @@ function ExpenseRow({
                   : "bg-amber-100 text-amber-700"
               }`}
             >
-              {expense.isPaid ? "مدفوع" : "غير مدفوع"}
+              {expense.isPaid ? t("statusPaid") : t("statusUnpaid")}
             </Badge>
             <Badge
               className={`h-4 px-1.5 text-[10px] border-0 ${
                 CATEGORY_COLORS[expense.category] ?? "bg-muted text-muted-foreground"
               }`}
             >
-              {CATEGORY_LABELS[expense.category] ?? expense.category}
+              {t(CATEGORY_TKEYS[expense.category] ?? "catOther")}
             </Badge>
           </div>
 
@@ -234,28 +236,28 @@ function ExpenseRow({
             <div className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-xs space-y-0.5 text-muted-foreground">
               <p>
                 <span className="font-medium text-foreground">
-                  {expense.amountEGP.toLocaleString("ar-EG")} ج.م
+                  {expense.amountEGP.toLocaleString("ar-EG")} {t("currencySuffix")}
                 </span>
                 {" ÷ "}
-                {expense.usefulLifeMonths} شهر
+                {expense.usefulLifeMonths} {t("monthsUnit")}
                 {" = "}
                 <span className="font-medium text-foreground">
-                  {depInfo.monthly.toLocaleString("ar-EG")} ج.م/شهر
+                  {depInfo.monthly.toLocaleString("ar-EG")} {t("egpPerMonth")}
                 </span>
               </p>
               <p>
                 <span className="text-amber-600 font-medium">
-                  {depInfo.monthsRemaining} شهر متبقي
+                  {depInfo.monthsRemaining} {t("monthsRemainingUnit")}
                 </span>
               </p>
               <p>
-                تم إهلاك{" "}
+                {t("depreciatedLabel")}{" "}
                 <span className="font-medium text-foreground">
-                  {depInfo.totalDepreciated.toLocaleString("ar-EG")} ج.م
+                  {depInfo.totalDepreciated.toLocaleString("ar-EG")} {t("currencySuffix")}
                 </span>{" "}
-                من أصل{" "}
+                {t("depreciatedOf")}{" "}
                 <span className="font-medium text-foreground">
-                  {expense.amountEGP.toLocaleString("ar-EG")} ج.م
+                  {expense.amountEGP.toLocaleString("ar-EG")} {t("currencySuffix")}
                 </span>
               </p>
             </div>
@@ -267,7 +269,7 @@ function ExpenseRow({
           <span className="font-semibold tabular-nums">
             {expense.amountEGP.toLocaleString("ar-EG")}
           </span>
-          <span className="text-xs text-muted-foreground mr-1">ج.م</span>
+          <span className="text-xs text-muted-foreground mr-1">{t("currencySuffix")}</span>
         </div>
       </div>
 
@@ -293,12 +295,12 @@ function ExpenseRow({
             {confirmedThisMonth ? (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                تم التأكيد لهذا الشهر
+                {t("expConfirmedThisMonth")}
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                {confirming ? "جاري..." : "تأكيد لهذا الشهر"}
+                {confirming ? t("expConfirming") : t("expConfirmThisMonth")}
               </>
             )}
           </Button>
@@ -311,6 +313,8 @@ function ExpenseRow({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function ExpenseList({ expenses, filter, onUpdate }: Props) {
+  const t = useTranslations("financials")
+
   // Client-side filter — page always passes the full month dataset,
   // so chip counts are computed from the same array and are always accurate.
   const filtered =
@@ -324,7 +328,7 @@ export function ExpenseList({ expenses, filter, onUpdate }: Props) {
     <div dir="rtl" className="space-y-3">
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-          لا توجد مصروفات في هذه الفترة
+          {t("expNoExpenses")}
         </div>
       ) : (
         <div className="space-y-3">

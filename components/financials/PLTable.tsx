@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { PLSummary } from "@/app/api/financials/pl/route"
 
 interface Props {
@@ -12,13 +13,13 @@ interface Props {
   generatedAt: string
 }
 
-const EXPENSE_ROWS: { key: string; label: string }[] = [
-  { key: "rent", label: "إيجار" },
-  { key: "utilities", label: "مرافق" },
-  { key: "supplies", label: "مستلزمات" },
-  { key: "salary", label: "رواتب" },
-  { key: "equipment", label: "معدات" },
-  { key: "other", label: "أخرى" },
+const EXPENSE_ROW_KEYS: { key: string; tKey: string }[] = [
+  { key: "rent",      tKey: "catRent"      },
+  { key: "utilities", tKey: "catUtilities" },
+  { key: "supplies",  tKey: "catSupplies"  },
+  { key: "salary",    tKey: "catSalary"    },
+  { key: "equipment", tKey: "catEquipment" },
+  { key: "other",     tKey: "catOther"     },
 ]
 
 function formatMonthLabel(monthKey: string): string {
@@ -38,6 +39,7 @@ export function PLTable({
   doctorSpecialty,
   generatedAt,
 }: Props) {
+  const t = useTranslations("financials")
   const { totalRevenue, totalExpenses, netProfit, profitMargin } = summary
 
   function pct(amount: number): string {
@@ -57,16 +59,16 @@ export function PLTable({
           {doctorSpecialty ? ` — ${doctorSpecialty}` : ""}
         </p>
         <p className="text-base font-semibold mt-3">
-          كشف الأرباح والخسائر — {formatMonthLabel(month)}
+          {t("plPrintTitle", { month: formatMonthLabel(month) })}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          تاريخ الإنشاء: {generatedAt}
+          {t("plPrintGeneratedAt", { date: generatedAt })}
         </p>
       </div>
 
       {/* ── Screen-only section title ───────────────────────────────────────── */}
       <div className="flex items-center justify-between p-4 print:hidden">
-        <h2 className="text-sm font-semibold">كشف الأرباح والخسائر الشهري</h2>
+        <h2 className="text-sm font-semibold">{t("plMonthlyTitle")}</h2>
         <span className="text-xs text-muted-foreground">
           {formatMonthLabel(month)}
         </span>
@@ -77,15 +79,15 @@ export function PLTable({
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b-2">
-              <th className="pb-2 text-right font-semibold w-1/2">البند</th>
-              <th className="pb-2 text-left font-semibold">المبلغ (ج.م)</th>
-              <th className="pb-2 text-left font-semibold">% من الإيرادات</th>
+              <th className="pb-2 text-right font-semibold w-1/2">{t("plColItem")}</th>
+              <th className="pb-2 text-left font-semibold">{t("plColAmount")}</th>
+              <th className="pb-2 text-left font-semibold">{t("plColPct")}</th>
             </tr>
           </thead>
           <tbody>
             {/* Revenue row */}
             <tr className="border-b font-bold bg-emerald-50 print:bg-transparent">
-              <td className="py-2.5 pr-2 text-emerald-700">إجمالي الإيرادات</td>
+              <td className="py-2.5 pr-2 text-emerald-700">{t("plTotalRevenue")}</td>
               <td className="py-2.5 text-left tabular-nums text-emerald-700">
                 {totalRevenue.toLocaleString("ar-EG")}
               </td>
@@ -93,11 +95,11 @@ export function PLTable({
             </tr>
 
             {/* Individual expense rows */}
-            {EXPENSE_ROWS.map(({ key, label }) => {
+            {EXPENSE_ROW_KEYS.map(({ key, tKey }) => {
               const amount = expensesByCategory[key] ?? 0
               return (
                 <tr key={key} className="border-b border-dashed">
-                  <td className="py-2 pr-2 text-muted-foreground">{label}</td>
+                  <td className="py-2 pr-2 text-muted-foreground">{t(tKey)}</td>
                   <td className="py-2 text-left tabular-nums">
                     {amount.toLocaleString("ar-EG")}
                   </td>
@@ -110,7 +112,7 @@ export function PLTable({
 
             {/* Total expenses subtotal */}
             <tr className="border-b font-bold bg-red-50 print:bg-transparent">
-              <td className="py-2.5 pr-2 text-red-600">إجمالي المصروفات</td>
+              <td className="py-2.5 pr-2 text-red-600">{t("plTotalExpenses")}</td>
               <td className="py-2.5 text-left tabular-nums text-red-600">
                 {totalExpenses.toLocaleString("ar-EG")}
               </td>
@@ -132,7 +134,7 @@ export function PLTable({
                   isPositive ? "text-emerald-700" : "text-red-600"
                 }`}
               >
-                صافي الربح
+                {t("plNetProfit")}
               </td>
               <td
                 className={`py-2.5 text-left tabular-nums ${
@@ -156,7 +158,7 @@ export function PLTable({
                 profitMargin >= 0 ? "text-emerald-700" : "text-red-600"
               }`}
             >
-              <td className="py-2.5 pr-2">هامش الربح %</td>
+              <td className="py-2.5 pr-2">{t("plProfitMargin")}</td>
               <td className="py-2.5 text-left tabular-nums">
                 {profitMargin.toFixed(1)}%
               </td>
@@ -167,7 +169,7 @@ export function PLTable({
 
         {/* ── Print-only footer ─────────────────────────────────────────────── */}
         <div className="hidden print:flex mt-10 pt-4 border-t items-center justify-between text-xs text-muted-foreground">
-          <span>تم الإنشاء بواسطة Clinic OS</span>
+          <span>{t("plPrintFooter")}</span>
           <span className="print-page-number" />
         </div>
       </div>

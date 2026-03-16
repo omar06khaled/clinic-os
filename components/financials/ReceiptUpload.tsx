@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { createClient } from "@/lib/supabase"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Paperclip, X, FileText, Loader2 } from "lucide-react"
 
@@ -22,6 +23,7 @@ function extractStoragePath(publicUrl: string): string | null {
 }
 
 export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: Props) {
+  const t = useTranslations("financials")
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [removing, setRemoving] = useState(false)
@@ -31,7 +33,7 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
 
   async function handleFile(file: File) {
     if (file.size > 10 * 1024 * 1024) {
-      setError("الملف أكبر من 10 ميجابايت")
+      setError(t("receiptErrorSize"))
       return
     }
     setUploading(true)
@@ -50,7 +52,7 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
     } catch (err) {
       // Bug 7 fix: surface the real Supabase error message for easier debugging
       const msg = err instanceof Error ? err.message : String(err)
-      setError(`فشل رفع الملف: ${msg}`)
+      setError(t("receiptErrorUpload", { msg }))
     } finally {
       setUploading(false)
     }
@@ -71,7 +73,7 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
       onChange(null, null)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      setError(`فشل حذف الملف: ${msg}`)
+      setError(t("receiptErrorRemove", { msg }))
     } finally {
       setRemoving(false)
     }
@@ -107,7 +109,7 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={receiptUrl}
-                alt={receiptName ?? "إيصال"}
+                alt={receiptName ?? t("receiptAlt")}
                 className="h-14 w-14 rounded-lg border object-cover cursor-pointer hover:opacity-80 transition-opacity"
               />
             </a>
@@ -119,13 +121,13 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
               className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted transition-colors"
             >
               <FileText className="h-3.5 w-3.5 shrink-0" />
-              <span className="max-w-[140px] truncate">{receiptName ?? "ملف PDF"}</span>
+              <span className="max-w-[140px] truncate">{receiptName ?? t("receiptPdfLabel")}</span>
             </a>
           )}
           {/* Remove button — deletes from storage then clears DB record */}
           <button
             type="button"
-            title="حذف الإيصال"
+            title={t("receiptRemoveTitle")}
             onClick={handleRemove}
             className="rounded-full p-0.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
             disabled={disabled || busy}
@@ -151,7 +153,7 @@ export function ReceiptUpload({ receiptUrl, receiptName, onChange, disabled }: P
           ) : (
             <Paperclip className="h-3.5 w-3.5" />
           )}
-          {uploading ? "جاري الرفع..." : "إرفاق إيصال"}
+          {uploading ? t("receiptUploading") : t("receiptAttach")}
         </Button>
       )}
 

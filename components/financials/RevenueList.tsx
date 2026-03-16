@@ -1,6 +1,7 @@
 "use client"
 
 import { FileText } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import type { RevenueRow } from "@/app/api/financials/revenue/route"
 
@@ -15,38 +16,38 @@ interface Props {
   onViewInvoice: (row: RevenueRow) => void
 }
 
-const FILTER_LABELS: { key: FilterChip; label: string }[] = [
-  { key: "all", label: "الكل" },
-  { key: "unpaid", label: "غير مدفوع" },
-  { key: "paid", label: "مدفوع" },
-  { key: "waived", label: "معفى" },
+const FILTER_KEYS: { key: FilterChip; tKey: string }[] = [
+  { key: "all",    tKey: "filterAll"    },
+  { key: "unpaid", tKey: "filterUnpaid" },
+  { key: "paid",   tKey: "filterPaid"   },
+  { key: "waived", tKey: "filterWaived" },
 ]
 
-const METHOD_LABELS: Record<string, string> = {
-  cash: "كاش",
-  instapay: "إنستاباي",
-  fawry: "فوري",
-  insurance: "تأمين",
+const METHOD_TKEYS: Record<string, string> = {
+  cash:      "methodCash",
+  instapay:  "methodInstapay",
+  fawry:     "methodFawry",
+  insurance: "methodInsurance",
+}
+
+const STATUS_TKEYS: Record<string, string> = {
+  paid:    "statusPaid",
+  pending: "statusUnpaid",
+  waived:  "statusWaived",
 }
 
 // Distinct color per payment method
 const METHOD_BADGE_CLASSES: Record<string, string> = {
-  cash: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-  instapay: "bg-blue-100 text-blue-700 border border-blue-200",
-  fawry: "bg-orange-100 text-orange-700 border border-orange-200",
+  cash:      "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  instapay:  "bg-blue-100 text-blue-700 border border-blue-200",
+  fawry:     "bg-orange-100 text-orange-700 border border-orange-200",
   insurance: "bg-purple-100 text-purple-700 border border-purple-200",
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  paid: "مدفوع",
-  pending: "غير مدفوع",
-  waived: "معفى",
-}
-
 const STATUS_COLORS: Record<string, string> = {
-  paid: "bg-emerald-100 text-emerald-700",
+  paid:    "bg-emerald-100 text-emerald-700",
   pending: "bg-amber-100 text-amber-700",
-  waived: "bg-slate-100 text-slate-600",
+  waived:  "bg-slate-100 text-slate-600",
 }
 
 function formatDate(isoStr: string): string {
@@ -74,6 +75,8 @@ export function RevenueList({
   onMarkAsPaid,
   onViewInvoice,
 }: Props) {
+  const t = useTranslations("financials")
+
   const filtered = rows.filter((r) => {
     if (filter === "all") return true
     if (filter === "unpaid") return r.paymentStatus === "pending"
@@ -86,7 +89,7 @@ export function RevenueList({
     <div dir="rtl" className="space-y-3">
       {/* Filter chips */}
       <div className="flex gap-2 flex-wrap">
-        {FILTER_LABELS.map(({ key, label }) => (
+        {FILTER_KEYS.map(({ key, tKey }) => (
           <button
             key={key}
             onClick={() => onFilterChange(key)}
@@ -96,7 +99,7 @@ export function RevenueList({
                 : "bg-muted text-muted-foreground hover:bg-muted/70"
             }`}
           >
-            {label}
+            {t(tKey)}
             {key !== "all" && (
               <span className="mr-1 opacity-70">
                 ({rows.filter((r) => {
@@ -114,7 +117,7 @@ export function RevenueList({
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          لا توجد سجلات في هذه الفترة
+          {t("noRecords")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
@@ -122,22 +125,22 @@ export function RevenueList({
             <thead>
               <tr className="border-b bg-muted/40 text-right">
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  المريض
+                  {t("colPatient")}
                 </th>
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  التاريخ
+                  {t("colDate")}
                 </th>
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  المبلغ
+                  {t("colAmount")}
                 </th>
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  طريقة الدفع
+                  {t("colPaymentMethod")}
                 </th>
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  رسوم الحجز
+                  {t("colBookingFee")}
                 </th>
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  الحالة
+                  {t("colStatus")}
                 </th>
                 <th className="px-4 py-2.5" />
               </tr>
@@ -159,7 +162,7 @@ export function RevenueList({
                       <span className="text-xs">{formatTime(row.scheduledAt)}</span>
                     </td>
                     <td className="px-4 py-3 font-medium tabular-nums">
-                      {displayAmount.toLocaleString("ar-EG")} ج.م
+                      {displayAmount.toLocaleString("ar-EG")} {t("currencySuffix")}
                     </td>
                     <td className="px-4 py-3">
                       {row.paymentMethod ? (
@@ -169,7 +172,7 @@ export function RevenueList({
                             "bg-muted text-muted-foreground border border-border"
                           }`}
                         >
-                          {METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
+                          {t(METHOD_TKEYS[row.paymentMethod] ?? "methodCash")}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -178,10 +181,10 @@ export function RevenueList({
                     <td className="px-4 py-3 tabular-nums">
                       {row.convenienceFee > 0 ? (
                         <span className="font-medium text-amber-600">
-                          {row.convenienceFee} ج.م
+                          {row.convenienceFee} {t("currencySuffix")}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">٠ ج.م</span>
+                        <span className="text-muted-foreground">٠ {t("currencySuffix")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -191,7 +194,7 @@ export function RevenueList({
                           "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {STATUS_LABELS[row.paymentStatus] ?? row.paymentStatus}
+                        {t(STATUS_TKEYS[row.paymentStatus] ?? "statusUnpaid")}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -204,7 +207,7 @@ export function RevenueList({
                               className="h-7 text-xs"
                               onClick={() => onMarkAsPaid(row)}
                             >
-                              تسجيل دفع
+                              {t("recordPaymentBtn")}
                             </Button>
                           )}
                         {row.paymentStatus === "paid" && (
@@ -212,7 +215,7 @@ export function RevenueList({
                             size="sm"
                             variant="ghost"
                             className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                            title="عرض الفاتورة"
+                            title={t("viewInvoiceTitle")}
                             onClick={() => onViewInvoice(row)}
                           >
                             <FileText className="h-3.5 w-3.5" />

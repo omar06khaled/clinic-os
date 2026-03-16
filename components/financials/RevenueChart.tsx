@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ChartPoint } from "@/app/api/financials/revenue/route"
 
@@ -19,9 +20,9 @@ interface Props {
 }
 
 const COLORS = {
-  revenue: "#3b82f6",
-  convenienceFee: "#f59e0b",
-  compareRevenue: "#93c5fd",
+  revenue:               "#3b82f6",
+  convenienceFee:        "#f59e0b",
+  compareRevenue:        "#93c5fd",
   compareConvenienceFee: "#fcd34d",
 }
 
@@ -59,6 +60,8 @@ function CustomTooltip({
 }
 
 export function RevenueChart({ chartData, compareEnabled }: Props) {
+  const t = useTranslations("financials")
+
   const hasData = chartData.some(
     (p) => p.revenue > 0 || p.convenienceFee > 0
   )
@@ -67,13 +70,13 @@ export function RevenueChart({ chartData, compareEnabled }: Props) {
     <Card dir="rtl">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
-          الإيرادات حسب الفترة
+          {t("revenueByPeriodTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!hasData ? (
           <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-            لا توجد إيرادات محصّلة في هذه الفترة
+            {t("revenueNoData")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={260}>
@@ -110,14 +113,14 @@ export function RevenueChart({ chartData, compareEnabled }: Props) {
               {/* Primary period bars */}
               <Bar
                 dataKey="revenue"
-                name="الاستشارات"
+                name={t("revenueConsultations")}
                 fill={COLORS.revenue}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={40}
               />
               <Bar
                 dataKey="convenienceFee"
-                name="رسوم الحجز"
+                name={t("revenueBookingFees")}
                 fill={COLORS.convenienceFee}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={40}
@@ -128,14 +131,14 @@ export function RevenueChart({ chartData, compareEnabled }: Props) {
                 <>
                   <Bar
                     dataKey="compareRevenue"
-                    name="الاستشارات (مقارنة)"
+                    name={t("revenueConsultationsCompare")}
                     fill={COLORS.compareRevenue}
                     radius={[3, 3, 0, 0]}
                     maxBarSize={40}
                   />
                   <Bar
                     dataKey="compareConvenienceFee"
-                    name="رسوم الحجز (مقارنة)"
+                    name={t("revenueBookingFeesCompare")}
                     fill={COLORS.compareConvenienceFee}
                     radius={[3, 3, 0, 0]}
                     maxBarSize={40}

@@ -10,22 +10,23 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import type { PLBarPoint } from "@/app/api/financials/pl/route"
 
 export type BarPeriod = "6" | "12" | "ytd"
 
-const PERIOD_OPTIONS: { value: BarPeriod; label: string }[] = [
-  { value: "6", label: "٦ أشهر" },
-  { value: "ytd", label: "هذه السنة" },
-  { value: "12", label: "١٢ شهر" },
+const PERIOD_OPTIONS: { value: BarPeriod; tKey: string }[] = [
+  { value: "6",   tKey: "barPeriod6"   },
+  { value: "ytd", tKey: "barPeriodYtd" },
+  { value: "12",  tKey: "barPeriod12"  },
 ]
 
-const PERIOD_TITLES: Record<BarPeriod, string> = {
-  "6": "الإيرادات مقابل المصروفات — آخر ٦ أشهر",
-  ytd: "الإيرادات مقابل المصروفات — هذه السنة",
-  "12": "الإيرادات مقابل المصروفات — آخر ١٢ شهرًا",
+const PERIOD_TITLE_KEYS: Record<BarPeriod, string> = {
+  "6":   "barTitle6",
+  ytd:   "barTitleYtd",
+  "12":  "barTitle12",
 }
 
 // dd-mm-yyyy → yyyy-mm-dd, or null if invalid
@@ -48,7 +49,7 @@ interface Props {
 }
 
 const COLORS = {
-  revenue: "#3b82f6",
+  revenue:  "#3b82f6",
   expenses: "#ef4444",
 }
 
@@ -94,10 +95,12 @@ export function PLBarChart({
   onCustomToChange,
   onCustomApply,
 }: Props) {
+  const t = useTranslations("financials")
+
   const hasData = data.some((p) => p.revenue > 0 || p.expenses > 0)
   const title = period
-    ? PERIOD_TITLES[period]
-    : "الإيرادات مقابل المصروفات — نطاق مخصص"
+    ? t(PERIOD_TITLE_KEYS[period])
+    : t("barTitleCustom")
 
   function handleApply() {
     const isoFrom = parseDMY(customFrom)
@@ -127,7 +130,7 @@ export function PLBarChart({
                     : "bg-muted text-muted-foreground hover:bg-muted/70"
                 }`}
               >
-                {opt.label}
+                {t(opt.tKey)}
               </button>
             ))}
           </div>
@@ -137,7 +140,7 @@ export function PLBarChart({
         {/* ── Custom date range row ───────────────────────────────────────── */}
         <div className="mb-4 flex items-center justify-end gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 text-xs text-muted-foreground">من</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{t("barFrom")}</span>
             <Input
               value={customFrom}
               onChange={(e) => onCustomFromChange(e.target.value)}
@@ -147,7 +150,7 @@ export function PLBarChart({
             />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 text-xs text-muted-foreground">إلى</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{t("barTo")}</span>
             <Input
               value={customTo}
               onChange={(e) => onCustomToChange(e.target.value)}
@@ -161,14 +164,14 @@ export function PLBarChart({
             disabled={!applyEnabled}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-opacity disabled:opacity-40"
           >
-            تطبيق
+            {t("barApply")}
           </button>
         </div>
 
         {/* ── Chart ──────────────────────────────────────────────────────── */}
         {!hasData ? (
           <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-            لا توجد بيانات في هذه الفترة
+            {t("barNoData")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={260}>
@@ -203,14 +206,14 @@ export function PLBarChart({
               />
               <Bar
                 dataKey="revenue"
-                name="الإيرادات"
+                name={t("barRevenueName")}
                 fill={COLORS.revenue}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={40}
               />
               <Bar
                 dataKey="expenses"
-                name="المصروفات"
+                name={t("barExpensesName")}
                 fill={COLORS.expenses}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={40}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ function todayCairoStr(): string {
 }
 
 export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) {
+  const t = useTranslations("financials")
   const [method, setMethod] = useState("cash")
   const [amount, setAmount] = useState(String(defaultFee))
   const [paymentDate, setPaymentDate] = useState(todayCairoStr())
@@ -51,7 +53,7 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
   async function handleSubmit() {
     const parsed = parseInt(amount, 10)
     if (isNaN(parsed) || parsed < 0) {
-      setError("أدخل مبلغاً صحيحاً")
+      setError(t("markPaidErrorInvalidAmount"))
       return
     }
     if (!row) return
@@ -61,7 +63,7 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
 
     // Build optional note string
     const parts: string[] = []
-    parts.push(`دفع في: ${paymentDate}`)
+    parts.push(t("markPaidPaymentNote", { date: paymentDate }))
     if (note.trim()) parts.push(note.trim())
     const noteStr = parts.join(" — ")
 
@@ -76,11 +78,11 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
           note: noteStr,
         }),
       })
-      if (!res.ok) throw new Error("فشل الحفظ")
+      if (!res.ok) throw new Error(t("markPaidErrorSave"))
       onSuccess(row.id)
       onClose()
     } catch {
-      setError("حدث خطأ، حاول مرة أخرى")
+      setError(t("markPaidErrorGeneric"))
     } finally {
       setLoading(false)
     }
@@ -98,29 +100,29 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
     >
       <DialogContent className="sm:max-w-sm" dir="rtl">
         <DialogHeader>
-          <DialogTitle>تسجيل دفعة — {row?.patientName ?? ""}</DialogTitle>
+          <DialogTitle>{t("markPaidTitle", { name: row?.patientName ?? "" })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Payment method */}
           <div className="space-y-1.5">
-            <Label htmlFor="modal-method">طريقة الدفع</Label>
+            <Label htmlFor="modal-method">{t("markPaidMethodLabel")}</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger id="modal-method">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">كاش</SelectItem>
-                <SelectItem value="instapay">إنستاباي</SelectItem>
-                <SelectItem value="fawry">فوري</SelectItem>
-                <SelectItem value="insurance">تأمين</SelectItem>
+                <SelectItem value="cash">{t("methodCash")}</SelectItem>
+                <SelectItem value="instapay">{t("methodInstapay")}</SelectItem>
+                <SelectItem value="fawry">{t("methodFawry")}</SelectItem>
+                <SelectItem value="insurance">{t("methodInsurance")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Amount */}
           <div className="space-y-1.5">
-            <Label htmlFor="modal-amount">المبلغ المدفوع (ج.م)</Label>
+            <Label htmlFor="modal-amount">{t("markPaidAmountLabel")}</Label>
             <Input
               id="modal-amount"
               type="number"
@@ -134,7 +136,7 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
 
           {/* Payment date */}
           <div className="space-y-1.5">
-            <Label htmlFor="modal-date">تاريخ الدفع</Label>
+            <Label htmlFor="modal-date">{t("markPaidDateLabel")}</Label>
             <Input
               id="modal-date"
               type="date"
@@ -147,10 +149,10 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
 
           {/* Optional note / reference */}
           <div className="space-y-1.5">
-            <Label htmlFor="modal-note">ملاحظة / رقم مرجعي (اختياري)</Label>
+            <Label htmlFor="modal-note">{t("markPaidNoteLabel")}</Label>
             <Input
               id="modal-note"
-              placeholder="مثال: رقم عملية فوري"
+              placeholder={t("markPaidNotePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -161,10 +163,10 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            إلغاء
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? "جاري الحفظ..." : "تأكيد الدفع"}
+            {loading ? t("saving") : t("confirmPayment")}
           </Button>
         </DialogFooter>
       </DialogContent>

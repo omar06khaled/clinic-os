@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Loader2, Printer, Send } from "lucide-react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ function fmt(n: number): string {
 }
 
 export function InvoiceModal({ row, onClose }: Props) {
+  const t = useTranslations("financials")
   const [invoice, setInvoice] = useState<InvoiceData | null>(null)
   const [loading, setLoading] = useState(false)
   const [notFound, setNotFound] = useState(false)
@@ -73,7 +75,7 @@ export function InvoiceModal({ row, onClose }: Props) {
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>فاتورة طبية — ${invoice.patientName}</title>
+  <title>${t("invoicePrintTitle", { name: invoice.patientName })}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -112,25 +114,25 @@ export function InvoiceModal({ row, onClose }: Props) {
 <body>
   <div class="header">
     <h1>${invoice.clinicName}</h1>
-    <p>د. ${invoice.doctorName}</p>
+    <p>${t("doctorPrefix")} ${invoice.doctorName}</p>
   </div>
 
   <div class="section">
     <div class="info-grid">
       <div class="info-item">
-        <label>المريض</label>
+        <label>${t("invoiceLabelPatient")}</label>
         <span>${invoice.patientName}</span>
       </div>
       <div class="info-item">
-        <label>الهاتف</label>
+        <label>${t("invoiceLabelPhone")}</label>
         <span>${invoice.patientPhone}</span>
       </div>
       <div class="info-item">
-        <label>تاريخ الفاتورة</label>
+        <label>${t("invoiceLabelInvoiceDate")}</label>
         <span>${formatInvoiceDate(invoice.invoiceDate)}</span>
       </div>
       <div class="info-item">
-        <label>رقم الفاتورة</label>
+        <label>${t("invoiceLabelInvoiceNumber")}</label>
         <span style="font-size:11px;color:#666;">${invoice.id}</span>
       </div>
     </div>
@@ -139,10 +141,10 @@ export function InvoiceModal({ row, onClose }: Props) {
   <hr class="divider" />
 
   <div class="section">
-    <div class="section-title">تفاصيل الخدمة</div>
+    <div class="section-title">${t("invoiceSectionService")}</div>
     <div class="service-row">
       <span>${invoice.serviceDescription}</span>
-      <span>${fmt(invoice.amountEGP)} ج.م</span>
+      <span>${fmt(invoice.amountEGP)} ${t("currencySuffix")}</span>
     </div>
   </div>
 
@@ -150,27 +152,27 @@ export function InvoiceModal({ row, onClose }: Props) {
 
   <div class="totals">
     <div class="totals-row">
-      <span>المبلغ الأساسي</span>
-      <span>${fmt(invoice.amountEGP)} ج.م</span>
+      <span>${t("invoiceLabelBase")}</span>
+      <span>${fmt(invoice.amountEGP)} ${t("currencySuffix")}</span>
     </div>
     <div class="totals-row">
-      <span>ضريبة القيمة المضافة (14٪)</span>
-      <span>${fmt(invoice.taxAmountEGP)} ج.م</span>
+      <span>${t("invoiceLabelVat")}</span>
+      <span>${fmt(invoice.taxAmountEGP)} ${t("currencySuffix")}</span>
     </div>
     <div class="totals-row total">
-      <span>الإجمالي</span>
-      <span>${fmt(invoice.totalAmountEGP)} ج.م</span>
+      <span>${t("invoiceLabelTotal")}</span>
+      <span>${fmt(invoice.totalAmountEGP)} ${t("currencySuffix")}</span>
     </div>
   </div>
 
   <hr class="divider" style="margin-top:24px;" />
 
   <div style="margin-top:12px;">
-    <span class="section-title">حالة منظومة الفاتورة الإلكترونية: </span>
-    <span class="eta-badge">معلق — قيد التسجيل</span>
+    <span class="section-title">${t("invoiceEtaStatusLabel")}</span>
+    <span class="eta-badge">${t("invoiceEtaPendingBadge")}</span>
   </div>
 
-  <div class="footer">شكراً لثقتكم — هذه الفاتورة صادرة إلكترونياً</div>
+  <div class="footer">${t("invoicePrintFooter")}</div>
 </body>
 </html>`)
     printWindow.document.close()
@@ -179,10 +181,10 @@ export function InvoiceModal({ row, onClose }: Props) {
   }
 
   const ETA_STATUS_LABELS: Record<string, string> = {
-    pending: "معلق",
-    submitted: "تم الإرسال",
-    accepted: "مقبول",
-    rejected: "مرفوض",
+    pending: t("invoiceEtaPending"),
+    submitted: t("invoiceEtaSubmitted"),
+    accepted: t("invoiceEtaAccepted"),
+    rejected: t("invoiceEtaRejected"),
   }
 
   return (
@@ -194,7 +196,7 @@ export function InvoiceModal({ row, onClose }: Props) {
     >
       <DialogContent className="sm:max-w-lg" dir="rtl">
         <DialogHeader>
-          <DialogTitle>فاتورة طبية</DialogTitle>
+          <DialogTitle>{t("invoiceDialogTitle")}</DialogTitle>
         </DialogHeader>
 
         {/* Loading */}
@@ -207,9 +209,9 @@ export function InvoiceModal({ row, onClose }: Props) {
         {/* Not found */}
         {!loading && notFound && (
           <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-            <p className="font-medium">الفاتورة غير متاحة</p>
+            <p className="font-medium">{t("invoiceNotAvailableTitle")}</p>
             <p className="mt-1 text-xs">
-              تُنشأ الفواتير تلقائياً عند تسجيل الدفع. هذه المعاملة سُجّلت قبل تفعيل الفواتير.
+              {t("invoiceNotAvailableBody")}
             </p>
           </div>
         )}
@@ -220,25 +222,25 @@ export function InvoiceModal({ row, onClose }: Props) {
             {/* Clinic + Doctor header */}
             <div className="rounded-lg bg-muted/40 px-4 py-3 text-center">
               <p className="text-base font-bold">{invoice.clinicName}</p>
-              <p className="text-sm text-muted-foreground">د. {invoice.doctorName}</p>
+              <p className="text-sm text-muted-foreground">{t("doctorPrefix")} {invoice.doctorName}</p>
             </div>
 
             {/* Patient info */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-xs text-muted-foreground">المريض</p>
+                <p className="text-xs text-muted-foreground">{t("invoiceLabelPatient")}</p>
                 <p className="font-semibold">{invoice.patientName}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">الهاتف</p>
+                <p className="text-xs text-muted-foreground">{t("invoiceLabelPhone")}</p>
                 <p className="font-semibold" dir="ltr">{invoice.patientPhone}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">تاريخ الفاتورة</p>
+                <p className="text-xs text-muted-foreground">{t("invoiceLabelInvoiceDate")}</p>
                 <p className="font-semibold">{formatInvoiceDate(invoice.invoiceDate)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">رقم الفاتورة</p>
+                <p className="text-xs text-muted-foreground">{t("invoiceLabelInvoiceNumber")}</p>
                 <p className="font-mono text-xs text-muted-foreground">{invoice.id.slice(-8)}</p>
               </div>
             </div>
@@ -247,7 +249,7 @@ export function InvoiceModal({ row, onClose }: Props) {
 
             {/* Service */}
             <div className="text-sm">
-              <p className="text-xs text-muted-foreground mb-1">الخدمة المقدمة</p>
+              <p className="text-xs text-muted-foreground mb-1">{t("invoiceSectionService")}</p>
               <p className="font-medium">{invoice.serviceDescription}</p>
             </div>
 
@@ -256,22 +258,22 @@ export function InvoiceModal({ row, onClose }: Props) {
             {/* Totals */}
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">المبلغ الأساسي</span>
-                <span className="tabular-nums">{fmt(invoice.amountEGP)} ج.م</span>
+                <span className="text-muted-foreground">{t("invoiceLabelBase")}</span>
+                <span className="tabular-nums">{fmt(invoice.amountEGP)} {t("currencySuffix")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">ضريبة القيمة المضافة (14٪)</span>
-                <span className="tabular-nums">{fmt(invoice.taxAmountEGP)} ج.م</span>
+                <span className="text-muted-foreground">{t("invoiceLabelVat")}</span>
+                <span className="tabular-nums">{fmt(invoice.taxAmountEGP)} {t("currencySuffix")}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2 font-bold text-base">
-                <span>الإجمالي</span>
-                <span className="tabular-nums">{fmt(invoice.totalAmountEGP)} ج.م</span>
+                <span>{t("invoiceLabelTotal")}</span>
+                <span className="tabular-nums">{fmt(invoice.totalAmountEGP)} {t("currencySuffix")}</span>
               </div>
             </div>
 
             {/* ETA status */}
             <div className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              حالة منظومة الفاتورة الإلكترونية:{" "}
+              {t("invoiceEtaStatusLabel")}
               <span className="font-medium text-foreground">
                 {ETA_STATUS_LABELS[invoice.etaStatus] ?? invoice.etaStatus}
               </span>
@@ -281,22 +283,22 @@ export function InvoiceModal({ row, onClose }: Props) {
 
         <DialogFooter className="gap-2 mt-2">
           <Button variant="outline" onClick={onClose}>
-            إغلاق
+            {t("close")}
           </Button>
           {invoice && (
             <>
               <Button variant="outline" onClick={handlePrint} className="gap-1.5">
                 <Printer className="h-4 w-4" />
-                طباعة / PDF
+                {t("invoicePrintBtn")}
               </Button>
               {/* ETA Submit — disabled until business registration is cleared */}
               <Button
                 disabled
-                title="إرسال منظومة الفاتورة متاح بعد استكمال التسجيل التجاري. بيانات الفاتورة محفوظة وجاهزة."
+                title={t("invoiceSubmitEtaTooltip")}
                 className="gap-1.5"
               >
                 <Send className="h-4 w-4" />
-                إرسال لمنظومة الفاتورة
+                {t("invoiceSubmitEtaBtn")}
               </Button>
             </>
           )}

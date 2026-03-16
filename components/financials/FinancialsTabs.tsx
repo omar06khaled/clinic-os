@@ -2,21 +2,23 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
-const TABS = [
-  { href: "/financials/revenue",  label: "الإيرادات"       },
-  { href: "/financials/expenses", label: "المصروفات"       },
-  { href: "/financials/pl",       label: "الأرباح والخسائر" },
-] as const
+const TABS: { href: string; tKey: string }[] = [
+  { href: "/financials/revenue",  tKey: "tabRevenue"  },
+  { href: "/financials/expenses", tKey: "tabExpenses" },
+  { href: "/financials/pl",       tKey: "tabPL"       },
+]
 
 export function FinancialsTabs() {
+  const t = useTranslations("financials")
   const pathname = usePathname()
 
   return (
     <div className="border-b bg-card px-4 md:px-6 pt-4" dir="rtl">
       <div className="flex gap-1 overflow-x-auto">
-        {TABS.map(({ href, label }) => {
+        {TABS.map(({ href, tKey }) => {
           const active = pathname.startsWith(href)
           return (
             <Link
@@ -29,7 +31,7 @@ export function FinancialsTabs() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              {label}
+              {t(tKey)}
             </Link>
           )
         })}

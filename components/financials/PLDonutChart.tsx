@@ -8,19 +8,20 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Props {
   expensesByCategory: Record<string, number>
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  rent: "إيجار",
-  utilities: "مرافق",
-  supplies: "مستلزمات",
-  salary: "رواتب",
-  equipment: "معدات",
-  other: "أخرى",
+const CATEGORY_TKEYS: Record<string, string> = {
+  rent:      "catRent",
+  utilities: "catUtilities",
+  supplies:  "catSupplies",
+  salary:    "catSalary",
+  equipment: "catEquipment",
+  other:     "catOther",
 }
 
 const CATEGORIES = [
@@ -50,9 +51,11 @@ interface TooltipPayloadItem {
 function DonutTooltip({
   active,
   payload,
+  tPercent,
 }: {
   active?: boolean
   payload?: TooltipPayloadItem[]
+  tPercent: string
 }) {
   if (!active || !payload?.length) return null
   const item = payload[0]
@@ -66,13 +69,15 @@ function DonutTooltip({
         {item.value.toLocaleString("ar-EG")} ج.م
       </p>
       <p className="text-muted-foreground">
-        {(item.payload.percent * 100).toFixed(1)}% من الإجمالي
+        {(item.payload.percent * 100).toFixed(1)}{tPercent}
       </p>
     </div>
   )
 }
 
 export function PLDonutChart({ expensesByCategory }: Props) {
+  const t = useTranslations("financials")
+
   const total = CATEGORIES.reduce(
     (sum, cat) => sum + (expensesByCategory[cat] ?? 0),
     0
@@ -80,7 +85,7 @@ export function PLDonutChart({ expensesByCategory }: Props) {
   const donutData = CATEGORIES.filter(
     (cat) => (expensesByCategory[cat] ?? 0) > 0
   ).map((cat) => ({
-    name: CATEGORY_LABELS[cat],
+    name: t(CATEGORY_TKEYS[cat]),
     value: expensesByCategory[cat],
     catKey: cat,
     percent: total > 0 ? expensesByCategory[cat] / total : 0,
@@ -90,13 +95,13 @@ export function PLDonutChart({ expensesByCategory }: Props) {
     <Card dir="rtl">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
-          توزيع المصروفات حسب الفئة
+          {t("donutTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {donutData.length === 0 ? (
           <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-            لا توجد مصروفات في هذه الفترة
+            {t("donutNoData")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
@@ -117,7 +122,7 @@ export function PLDonutChart({ expensesByCategory }: Props) {
                   />
                 ))}
               </Pie>
-              <Tooltip content={<DonutTooltip />} />
+              <Tooltip content={<DonutTooltip tPercent={t("donutTooltipPercent")} />} />
               <Legend
                 wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
                 formatter={(value) => (

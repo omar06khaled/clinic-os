@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -33,18 +34,20 @@ type Category = "rent" | "utilities" | "supplies" | "salary" | "equipment" | "ot
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORIES: { value: Category; label: string }[] = [
-  { value: "rent", label: "إيجار" },
-  { value: "utilities", label: "مرافق (كهرباء / مياه / إنترنت)" },
-  { value: "supplies", label: "مستلزمات طبية" },
-  { value: "salary", label: "رواتب" },
-  { value: "equipment", label: "معدات وأجهزة" },
-  { value: "other", label: "أخرى" },
+const CATEGORY_VALUES: { value: Category; tKey: string }[] = [
+  { value: "rent",      tKey: "catRent"           },
+  { value: "utilities", tKey: "addCatUtilitiesLabel" },
+  { value: "supplies",  tKey: "addCatSuppliesLabel"  },
+  { value: "salary",    tKey: "catSalary"           },
+  { value: "equipment", tKey: "addCatEquipmentLabel" },
+  { value: "other",     tKey: "catOther"            },
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
+  const t = useTranslations("financials")
+
   // ── Form state ───────────────────────────────────────────────────────────
   const [category, setCategory] = useState<Category | "">("")
   const [description, setDescription] = useState("")
@@ -107,7 +110,7 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!category || !description.trim() || !amountEGP || !date) {
-      setError("يرجى تعبئة الحقول المطلوبة")
+      setError(t("addErrorRequired"))
       return
     }
     setSubmitting(true)
@@ -136,13 +139,13 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
       })
       if (!res.ok) {
         const json = await res.json()
-        throw new Error(json.error ?? "فشل الحفظ")
+        throw new Error(json.error ?? t("addErrorSave"))
       }
       const created: ExpenseRow = await res.json()
       onSuccess(created)
       handleClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "حدث خطأ")
+      setError(err instanceof Error ? err.message : t("addErrorGeneric"))
     } finally {
       setSubmitting(false)
     }
@@ -156,26 +159,26 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
         dir="rtl"
       >
         <DialogHeader>
-          <DialogTitle>إضافة مصروف جديد</DialogTitle>
+          <DialogTitle>{t("addExpenseTitle")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* ── Category ─────────────────────────────────────────────── */}
           <div className="space-y-1.5">
             <Label>
-              التصنيف <span className="text-destructive">*</span>
+              {t("addLabelCategory")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={category}
               onValueChange={(v) => setCategory(v as Category)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="اختر التصنيف" />
+                <SelectValue placeholder={t("addSelectCategoryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((c) => (
+                {CATEGORY_VALUES.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
-                    {c.label}
+                    {t(c.tKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -185,30 +188,30 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
           {/* ── Description ──────────────────────────────────────────── */}
           <div className="space-y-1.5">
             <Label>
-              الوصف <span className="text-destructive">*</span>
+              {t("addLabelDescription")} <span className="text-destructive">*</span>
             </Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="مثال: إيجار عيادة شهر مارس"
+              placeholder={t("addDescriptionPlaceholder")}
               required
             />
           </div>
 
           {/* ── Vendor ───────────────────────────────────────────────── */}
           <div className="space-y-1.5">
-            <Label>المورد (اختياري)</Label>
+            <Label>{t("addLabelVendor")}</Label>
             <Input
               value={vendorName}
               onChange={(e) => setVendorName(e.target.value)}
-              placeholder="اسم المورد أو الجهة"
+              placeholder={t("addVendorPlaceholder")}
             />
           </div>
 
           {/* ── Amount + VAT ─────────────────────────────────────────── */}
           <div className="space-y-1.5">
             <Label>
-              المبلغ (ج.م) <span className="text-destructive">*</span>
+              {t("addLabelAmount")} <span className="text-destructive">*</span>
             </Label>
             <Input
               type="number"
@@ -229,20 +232,20 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
               onChange={(e) => setIncludesVat(e.target.checked)}
               className="h-4 w-4 rounded accent-primary"
             />
-            <span className="text-sm">يشمل ضريبة القيمة المضافة 14%</span>
+            <span className="text-sm">{t("addVatCheckbox")}</span>
           </label>
           {includesVat && rawAmount > 0 && (
             <div className="rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground space-y-0.5">
               <p>
-                المبلغ قبل الضريبة:{" "}
+                {t("addVatBaseLabel")}{" "}
                 <span className="font-medium text-foreground">
-                  {baseAmount.toLocaleString("ar-EG")} ج.م
+                  {baseAmount.toLocaleString("ar-EG")} {t("currencySuffix")}
                 </span>
               </p>
               <p>
-                الضريبة (14%):{" "}
+                {t("addVatTaxLabel")}{" "}
                 <span className="font-medium text-foreground">
-                  {vatAmount.toLocaleString("ar-EG")} ج.م
+                  {vatAmount.toLocaleString("ar-EG")} {t("currencySuffix")}
                 </span>
               </p>
             </div>
@@ -251,7 +254,7 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
           {/* ── Date ─────────────────────────────────────────────────── */}
           <div className="space-y-1.5">
             <Label>
-              التاريخ <span className="text-destructive">*</span>
+              {t("addLabelDate")} <span className="text-destructive">*</span>
             </Label>
             <Input
               type="date"
@@ -266,26 +269,26 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
           {category === "equipment" && (
             <div className="space-y-3 rounded-xl border bg-slate-50/50 p-3">
               <p className="text-xs font-semibold text-muted-foreground">
-                تفاصيل المعدة
+                {t("addEquipmentSectionTitle")}
               </p>
               <div className="space-y-1.5">
-                <Label>العمر الافتراضي (بالأشهر)</Label>
+                <Label>{t("addEquipmentLifeLabel")}</Label>
                 <Input
                   type="number"
                   min="1"
                   value={usefulLifeMonths}
                   onChange={(e) => setUsefulLifeMonths(e.target.value)}
-                  placeholder="مثال: 60"
+                  placeholder={t("addEquipmentLifePlaceholder")}
                   className="[direction:ltr]"
                 />
               </div>
               {monthlyDepreciation !== null && rawAmount > 0 && (
                 <div className="rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground space-y-0.5">
                   <p>
-                    الإهلاك الشهري:{" "}
+                    {t("monthlyDepreciationLabel")}{" "}
                     <span className="font-medium text-foreground">
-                      {rawAmount.toLocaleString("ar-EG")} ج.م ÷ {usefulLifeMonths} شهر ={" "}
-                      {monthlyDepreciation.toLocaleString("ar-EG")} ج.م/شهر
+                      {rawAmount.toLocaleString("ar-EG")} {t("currencySuffix")} ÷ {usefulLifeMonths} {t("monthsUnit")} ={" "}
+                      {monthlyDepreciation.toLocaleString("ar-EG")} {t("egpPerMonth")}
                     </span>
                   </p>
                 </div>
@@ -297,22 +300,22 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
           {category === "salary" && (
             <div className="space-y-3 rounded-xl border bg-purple-50/40 p-3">
               <p className="text-xs font-semibold text-muted-foreground">
-                بيانات الموظف
+                {t("addSalarySectionTitle")}
               </p>
               <div className="space-y-1.5">
-                <Label>اسم الموظف</Label>
+                <Label>{t("addStaffNameLabel")}</Label>
                 <Input
                   value={staffName}
                   onChange={(e) => setStaffName(e.target.value)}
-                  placeholder="مثال: أميرة محمود"
+                  placeholder={t("addStaffNamePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>المسمى الوظيفي</Label>
+                <Label>{t("addStaffRoleLabel")}</Label>
                 <Input
                   value={staffRole}
                   onChange={(e) => setStaffRole(e.target.value)}
-                  placeholder="مثال: سكرتيرة استقبال"
+                  placeholder={t("addStaffRolePlaceholder")}
                 />
               </div>
             </div>
@@ -327,7 +330,7 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
                 onChange={(e) => setIsRecurring(e.target.checked)}
                 className="h-4 w-4 rounded accent-primary"
               />
-              <span className="text-sm">مصروف متكرر شهرياً</span>
+              <span className="text-sm">{t("addRecurring")}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -336,13 +339,13 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
                 onChange={(e) => setIsPaid(e.target.checked)}
                 className="h-4 w-4 rounded accent-primary"
               />
-              <span className="text-sm">تم الدفع</span>
+              <span className="text-sm">{t("addMarkPaid")}</span>
             </label>
           </div>
 
           {/* ── Receipt upload ────────────────────────────────────────── */}
           <div className="space-y-1.5">
-            <Label>الإيصال (اختياري)</Label>
+            <Label>{t("addReceiptLabel")}</Label>
             <ReceiptUpload
               receiptUrl={receiptUrl}
               receiptName={receiptName}
@@ -363,10 +366,10 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
           {/* ── Footer ───────────────────────────────────────────────── */}
           <DialogFooter className="flex-row-reverse gap-2 pt-2">
             <Button type="submit" disabled={submitting}>
-              {submitting ? "جاري الحفظ..." : "حفظ"}
+              {submitting ? t("saving") : t("save")}
             </Button>
             <Button type="button" variant="outline" onClick={handleClose}>
-              إلغاء
+              {t("cancel")}
             </Button>
           </DialogFooter>
         </form>
