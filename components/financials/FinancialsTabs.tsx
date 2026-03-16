@@ -16,7 +16,7 @@ export function FinancialsTabs() {
   const pathname = usePathname()
 
   return (
-    <div className="border-b bg-card px-4 md:px-6 pt-4" dir="rtl">
+    <div className="border-b bg-card px-4 md:px-6 pt-4">
       <div className="flex gap-1 overflow-x-auto">
         {TABS.map(({ href, tKey }) => {
           const active = pathname.startsWith(href)

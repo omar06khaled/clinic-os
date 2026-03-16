@@ -265,7 +265,7 @@ function ExpenseRow({
         </div>
 
         {/* Amount */}
-        <div className="text-left shrink-0">
+        <div className="text-end shrink-0">
           <span className="font-semibold tabular-nums">
             {expense.amountEGP.toLocaleString("ar-EG")}
           </span>
@@ -325,7 +325,7 @@ export function ExpenseList({ expenses, filter, onUpdate }: Props) {
       : expenses.filter((e) => e.category === filter)
 
   return (
-    <div dir="rtl" className="space-y-3">
+    <div className="space-y-3">
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
           {t("expNoExpenses")}

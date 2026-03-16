@@ -98,7 +98,7 @@ export function MarkAsPaidModal({ row, defaultFee, onClose, onSuccess }: Props) 
         }
       }}
     >
-      <DialogContent className="sm:max-w-sm" dir="rtl">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("markPaidTitle", { name: row?.patientName ?? "" })}</DialogTitle>
         </DialogHeader>

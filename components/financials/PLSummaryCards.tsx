@@ -16,7 +16,7 @@ export function PLSummaryCards({ summary }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
       {/* Total Revenue */}
-      <Card dir="rtl">
+      <Card>
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-1">{t("summaryTotalRevenue")}</p>
           <p className="text-xl font-bold tabular-nums text-emerald-600">
@@ -29,7 +29,7 @@ export function PLSummaryCards({ summary }: Props) {
       </Card>
 
       {/* Total Expenses */}
-      <Card dir="rtl">
+      <Card>
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-1">{t("summaryTotalExpenses")}</p>
           <p className="text-xl font-bold tabular-nums text-red-500">
@@ -42,7 +42,7 @@ export function PLSummaryCards({ summary }: Props) {
       </Card>
 
       {/* Net Profit */}
-      <Card dir="rtl">
+      <Card>
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-1">{t("summaryNetProfit")}</p>
           <p
@@ -59,7 +59,7 @@ export function PLSummaryCards({ summary }: Props) {
       </Card>
 
       {/* Profit Margin */}
-      <Card dir="rtl">
+      <Card>
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-1">{t("summaryProfitMargin")}</p>
           <p
@@ -73,7 +73,7 @@ export function PLSummaryCards({ summary }: Props) {
       </Card>
 
       {/* Cash Position */}
-      <Card dir="rtl">
+      <Card>
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-1">{t("summaryCashPosition")}</p>
           <p

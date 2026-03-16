@@ -76,7 +76,6 @@ export function AppointmentCard({
         STATUS_BORDER[apt.status] ?? "border-r-[3px] border-r-border",
         compact ? "p-2" : "p-3"
       )}
-      dir="rtl"
     >
       {/* Row 1: name + type badge + status badge */}
       <div className="flex items-start justify-between gap-1 flex-wrap">

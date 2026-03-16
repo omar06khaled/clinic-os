@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { PatientRow } from "@/components/patients/PatientRow"
 import { Input } from "@/components/ui/input"
@@ -19,15 +20,7 @@ type FilterKey =
   | "new"
   | "inactive"
 
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "all", label: "الكل" },
-  { key: "diabetes", label: "سكري" },
-  { key: "hypertension", label: "ضغط الدم" },
-  { key: "cardiac", label: "أمراض القلب" },
-  { key: "thyroid", label: "الغدة الدرقية" },
-  { key: "new", label: "مريض جديد" },
-  { key: "inactive", label: "غير نشط" },
-]
+const FILTER_KEYS: FilterKey[] = ["all", "diabetes", "hypertension", "cardiac", "thyroid", "new", "inactive"]
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000
 
@@ -65,8 +58,9 @@ function applySearch(patients: PatientListItem[], query: string): PatientListIte
 
 function EmptyState({ hasPatients }: { hasPatients: boolean }) {
   const router = useRouter()
+  const t = useTranslations("patients")
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center" dir="rtl">
+    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
       <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
         <svg
           className="w-8 h-8 text-muted-foreground"
@@ -84,17 +78,17 @@ function EmptyState({ hasPatients }: { hasPatients: boolean }) {
       </div>
       <div>
         <p className="font-semibold text-base">
-          {hasPatients ? "لا توجد نتائج مطابقة" : "لا يوجد مرضى بعد"}
+          {hasPatients ? t("emptyNoMatch") : t("emptyNoPatients")}
         </p>
         <p className="text-sm text-muted-foreground mt-1">
           {hasPatients
-            ? "جرب تغيير كلمة البحث أو الفلتر"
-            : "أضف مريضك الأول للبدء"}
+            ? t("emptyNoMatchSub")
+            : t("emptyNoPatientsSub")}
         </p>
       </div>
       {!hasPatients && (
         <Button onClick={() => router.push("/patients/new")} className="mt-2">
-          إضافة مريض
+          {t("addPatientButton")}
         </Button>
       )}
     </div>
@@ -108,9 +102,20 @@ interface PatientsViewProps {
 }
 
 export function PatientsView({ patients }: PatientsViewProps) {
+  const t = useTranslations("patients")
   const [search, setSearch] = useState("")
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all")
   const parentRef = useRef<HTMLDivElement>(null)
+
+  const filterLabelKey: Record<FilterKey, string> = {
+    all: "filterAll",
+    diabetes: "filterDiabetes",
+    hypertension: "filterHypertension",
+    cardiac: "filterCardiac",
+    thyroid: "filterThyroid",
+    new: "filterNew",
+    inactive: "filterInactive",
+  }
 
   const filtered = useMemo(() => {
     const afterFilter = applyFilter(patients, activeFilter)
@@ -125,12 +130,12 @@ export function PatientsView({ patients }: PatientsViewProps) {
   })
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full">
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 pt-5 pb-3 border-b">
-        <h1 className="text-xl font-bold">المرضى</h1>
+        <h1 className="text-xl font-bold">{t("pageTitle")}</h1>
         <span className="text-sm text-muted-foreground">
-          {patients.length} مريض
+          {t("patientCount", { count: patients.length })}
         </span>
       </div>
 
@@ -152,28 +157,28 @@ export function PatientsView({ patients }: PatientsViewProps) {
           </svg>
           <Input
             type="text"
-            placeholder="ابحث بالاسم أو رقم الهاتف…"
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pr-9 text-right"
-            dir="rtl"
+            className="pr-9 text-start"
+            dir="auto"
           />
         </div>
       </div>
 
       {/* ── Filter chips ── */}
       <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b scrollbar-none">
-        {FILTERS.map((f) => (
+        {FILTER_KEYS.map((key) => (
           <button
-            key={f.key}
-            onClick={() => setActiveFilter(f.key)}
+            key={key}
+            onClick={() => setActiveFilter(key)}
             className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-colors font-medium ${
-              activeFilter === f.key
+              activeFilter === key
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
             }`}
           >
-            {f.label}
+            {t(filterLabelKey[key])}
           </button>
         ))}
       </div>
@@ -207,7 +212,7 @@ export function PatientsView({ patients }: PatientsViewProps) {
       {/* ── Results count footer (when filtering) ── */}
       {(search || activeFilter !== "all") && filtered.length > 0 && (
         <div className="px-4 py-2 border-t text-xs text-muted-foreground text-center">
-          عرض {filtered.length} من {patients.length} مريض
+          {t("showingCount", { shown: filtered.length, total: patients.length })}
         </div>
       )}
     </div>

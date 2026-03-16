@@ -42,14 +42,14 @@ export function StatCard({ title, value, icon: Icon, color, sub }: StatCardProps
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-xs font-medium text-muted-foreground truncate" dir="rtl">
+            <p className="text-xs font-medium text-muted-foreground truncate">
               {title}
             </p>
-            <p className={cn("text-2xl font-bold tracking-tight", c.value)} dir="rtl">
+            <p className={cn("text-2xl font-bold tracking-tight", c.value)}>
               {value}
             </p>
             {sub && (
-              <p className="text-xs text-muted-foreground mt-0.5" dir="rtl">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {sub}
               </p>
             )}

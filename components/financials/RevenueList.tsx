@@ -86,7 +86,7 @@ export function RevenueList({
   })
 
   return (
-    <div dir="rtl" className="space-y-3">
+    <div className="space-y-3">
       {/* Filter chips */}
       <div className="flex gap-2 flex-wrap">
         {FILTER_KEYS.map(({ key, tKey }) => (
@@ -123,7 +123,7 @@ export function RevenueList({
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/40 text-right">
+              <tr className="border-b bg-muted/40 text-start">
                 <th className="px-4 py-2.5 font-medium text-muted-foreground">
                   {t("colPatient")}
                 </th>

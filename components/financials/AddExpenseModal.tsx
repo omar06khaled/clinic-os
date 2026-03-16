@@ -156,7 +156,6 @@ export function AddExpenseModal({ open, onClose, onSuccess }: Props) {
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent
         className="max-h-[90vh] max-w-lg overflow-y-auto"
-        dir="rtl"
       >
         <DialogHeader>
           <DialogTitle>{t("addExpenseTitle")}</DialogTitle>

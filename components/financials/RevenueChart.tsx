@@ -40,7 +40,6 @@ function CustomTooltip({
   return (
     <div
       className="rounded-lg border bg-background p-3 shadow-md text-sm"
-      dir="rtl"
     >
       <p className="mb-1.5 font-semibold">{label}</p>
       {payload.map((entry) => (
@@ -67,7 +66,7 @@ export function RevenueChart({ chartData, compareEnabled }: Props) {
   )
 
   return (
-    <Card dir="rtl">
+    <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
           {t("revenueByPeriodTitle")}

@@ -16,7 +16,7 @@ function SkeletonAppointmentCard() {
 
 export default function AppointmentsLoading() {
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 border-b animate-pulse">
         <div className="flex gap-2">

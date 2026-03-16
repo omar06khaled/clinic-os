@@ -194,7 +194,7 @@ export function InvoiceModal({ row, onClose }: Props) {
         if (!open) onClose()
       }}
     >
-      <DialogContent className="sm:max-w-lg" dir="rtl">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("invoiceDialogTitle")}</DialogTitle>
         </DialogHeader>

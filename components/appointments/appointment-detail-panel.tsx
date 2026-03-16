@@ -141,7 +141,6 @@ export function AppointmentDetailPanel({
       {/* Slide-over panel — right side */}
       <div
         className="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-background shadow-2xl border-l"
-        dir="rtl"
         role="dialog"
         aria-modal="true"
       >

@@ -6,7 +6,7 @@ function SkeletonBlock({ h = "h-40" }: { h?: string }) {
 
 export default function AuditorLoading() {
   return (
-    <div className="flex flex-col gap-6 p-6" dir="rtl">
+    <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <div className="space-y-1.5 animate-pulse">
         <div className="h-6 w-40 bg-muted rounded" />

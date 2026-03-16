@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import type { VisitRecordDetail, PrescriptionItem, LabReferral } from "@/types"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -22,12 +23,15 @@ function safeJsonParse<T>(json: string | null, fallback: T): T {
 // ── Payment badge ─────────────────────────────────────────────────────────────
 
 function PaymentBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    paid: { label: "مدفوع", className: "bg-green-100 text-green-800" },
-    pending: { label: "معلق", className: "bg-amber-100 text-amber-800" },
-    waived: { label: "معفي", className: "bg-gray-100 text-gray-600" },
+  const t = useTranslations("patients")
+  const map: Record<string, { labelKey: string; className: string }> = {
+    paid: { labelKey: "paymentPaid", className: "bg-green-100 text-green-800" },
+    pending: { labelKey: "paymentPending", className: "bg-amber-100 text-amber-800" },
+    waived: { labelKey: "paymentWaived", className: "bg-gray-100 text-gray-600" },
   }
-  const { label, className } = map[status] ?? { label: status, className: "bg-gray-100 text-gray-600" }
+  const entry = map[status]
+  const label = entry ? t(entry.labelKey) : status
+  const className = entry ? entry.className : "bg-gray-100 text-gray-600"
   return (
     <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${className}`}>
       {label}
@@ -38,6 +42,7 @@ function PaymentBadge({ status }: { status: string }) {
 // ── Expanded visit card content ───────────────────────────────────────────────
 
 function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
+  const t = useTranslations("patients")
   const symptoms = safeJsonParse<string[]>(record.symptoms, [])
   const prescription = safeJsonParse<PrescriptionItem[]>(record.prescription, [])
   const labReferrals = safeJsonParse<LabReferral[]>(record.labReferrals, [])
@@ -52,36 +57,36 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {hasVitals && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            العلامات الحيوية
+            {t("sectionVitals")}
           </p>
           <div className="flex flex-wrap gap-2">
             {record.vitalsBP && (
               <div className="bg-muted/50 rounded-md px-2.5 py-1.5 text-xs">
-                <span className="text-muted-foreground">ضغط الدم: </span>
+                <span className="text-muted-foreground">{t("vitalBP")}: </span>
                 <span className="font-medium">{record.vitalsBP} mmHg</span>
               </div>
             )}
             {record.vitalsPulse && (
               <div className="bg-muted/50 rounded-md px-2.5 py-1.5 text-xs">
-                <span className="text-muted-foreground">النبض: </span>
-                <span className="font-medium">{record.vitalsPulse} نبضة/د</span>
+                <span className="text-muted-foreground">{t("vitalPulse")}: </span>
+                <span className="font-medium">{record.vitalsPulse} {t("unitBPM")}</span>
               </div>
             )}
             {record.vitalsTemp && (
               <div className="bg-muted/50 rounded-md px-2.5 py-1.5 text-xs">
-                <span className="text-muted-foreground">الحرارة: </span>
+                <span className="text-muted-foreground">{t("vitalTemp")}: </span>
                 <span className="font-medium">{record.vitalsTemp}°C</span>
               </div>
             )}
             {record.vitalsWeight && (
               <div className="bg-muted/50 rounded-md px-2.5 py-1.5 text-xs">
-                <span className="text-muted-foreground">الوزن: </span>
-                <span className="font-medium">{record.vitalsWeight} كجم</span>
+                <span className="text-muted-foreground">{t("vitalWeight")}: </span>
+                <span className="font-medium">{record.vitalsWeight} {t("unitKg")}</span>
               </div>
             )}
             {record.vitalsO2 && (
               <div className="bg-muted/50 rounded-md px-2.5 py-1.5 text-xs">
-                <span className="text-muted-foreground">O₂: </span>
+                <span className="text-muted-foreground">{t("vitalO2")}: </span>
                 <span className="font-medium">{record.vitalsO2}%</span>
               </div>
             )}
@@ -93,7 +98,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {symptoms.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            الأعراض
+            {t("sectionSymptoms")}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {symptoms.map((s, i) => (
@@ -109,7 +114,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {record.diagnosis && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-            التشخيص
+            {t("sectionDiagnosis")}
           </p>
           <p className="text-sm">{record.diagnosis}</p>
         </div>
@@ -119,7 +124,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {prescription.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            الوصفة الطبية
+            {t("sectionPrescription")}
           </p>
           <div className="space-y-1.5">
             {prescription.map((item, i) => (
@@ -141,7 +146,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {labReferrals.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            طلبات المختبر
+            {t("sectionLabReferrals")}
           </p>
           <div className="space-y-1.5">
             {labReferrals.map((lab, i) => (
@@ -154,7 +159,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
                 </div>
                 {lab.received && (
                   <span className="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full font-medium">
-                    استُلمت النتائج
+                    {t("labResultsReceived")}
                   </span>
                 )}
               </div>
@@ -167,10 +172,10 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {(record.followUpDays || record.followUpReason) && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-            خطة المتابعة
+            {t("sectionFollowUp")}
           </p>
           <p className="text-sm">
-            {record.followUpDays && <span className="font-medium">{record.followUpDays} يوم</span>}
+            {record.followUpDays && <span className="font-medium">{t("followUpDays", { days: record.followUpDays })}</span>}
             {record.followUpDays && record.followUpReason && " — "}
             {record.followUpReason && <span>{record.followUpReason}</span>}
           </p>
@@ -181,7 +186,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {record.doctorNotes && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-            ملاحظات الطبيب
+            {t("sectionDoctorNotes")}
           </p>
           <p className="text-sm bg-muted/40 rounded-md px-3 py-2">{record.doctorNotes}</p>
         </div>
@@ -191,7 +196,7 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {record.attachments.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            المرفقات
+            {t("sectionAttachments")}
           </p>
           <div className="flex gap-2 flex-wrap">
             {record.attachments.map((a) => (
@@ -206,18 +211,18 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       {/* Voice note (placeholder) */}
       <div>
         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-          ملاحظة صوتية
+          {t("sectionVoiceNote")}
         </p>
         <button
           disabled
-          title="الملاحظات الصوتية قادمة في المرحلة السابعة"
+          title={t("voiceNoteTitle")}
           className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 border border-dashed border-border px-3 py-1.5 rounded-md cursor-not-allowed opacity-60"
         >
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
           </svg>
-          تشغيل الملاحظة الصوتية
-          <span className="text-[9px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-full">المرحلة 7</span>
+          {t("voiceNotePlay")}
+          <span className="text-[9px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-full">{t("voiceNotePhase")}</span>
         </button>
       </div>
 
@@ -225,14 +230,14 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
       <div className="flex justify-end pt-1 border-t">
         <button
           disabled
-          title="تصدير PDF قادم في المرحلة الرابعة"
+          title={t("exportPdfTitle")}
           className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-not-allowed opacity-60 hover:opacity-60"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          تصدير PDF
-          <span className="text-[9px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-full">المرحلة 4</span>
+          {t("exportPdf")}
+          <span className="text-[9px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-full">{t("exportPdfPhase")}</span>
         </button>
       </div>
 
@@ -243,17 +248,18 @@ function ExpandedVisitContent({ record }: { record: VisitRecordDetail }) {
 // ── Visit card ────────────────────────────────────────────────────────────────
 
 function VisitCard({ record }: { record: VisitRecordDetail }) {
+  const t = useTranslations("patients")
   const [expanded, setExpanded] = useState(false)
 
   const displayDate = formatDate(record.appointment.scheduledAt)
-  const diagnosis = record.diagnosis ?? "لم يسجَّل تشخيص"
+  const diagnosis = record.diagnosis ?? t("noDiagnosis")
 
   return (
     <div className="border rounded-lg bg-card overflow-hidden">
       {/* Collapsed header — always visible */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-right hover:bg-muted/30 transition-colors"
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-start hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           {/* Timeline dot */}
@@ -294,15 +300,17 @@ interface VisitHistoryTabProps {
 }
 
 export function VisitHistoryTab({ records, onNewVisit }: VisitHistoryTabProps) {
+  const t = useTranslations("patients")
+
   return (
-    <div className="p-4 space-y-4 max-w-2xl" dir="rtl">
+    <div className="p-4 space-y-4 max-w-2xl">
 
       {/* Header with New Visit button */}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-sm">
           {records.length > 0
-            ? `${records.length} زيارة مسجلة`
-            : "لا توجد زيارات مسجلة"}
+            ? t("visitCount", { count: records.length })
+            : t("noVisitsRecorded")}
         </h2>
         <button
           onClick={onNewVisit}
@@ -311,7 +319,7 @@ export function VisitHistoryTab({ records, onNewVisit }: VisitHistoryTabProps) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          زيارة جديدة
+          {t("newVisitAction")}
         </button>
       </div>
 
@@ -324,8 +332,8 @@ export function VisitHistoryTab({ records, onNewVisit }: VisitHistoryTabProps) {
             </svg>
           </div>
           <div>
-            <p className="font-medium text-sm">لا توجد زيارات بعد</p>
-            <p className="text-xs text-muted-foreground mt-1">ابدأ بتسجيل أول زيارة للمريض</p>
+            <p className="font-medium text-sm">{t("noVisitsEmptyTitle")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("noVisitsEmptySub")}</p>
           </div>
         </div>
       ) : (

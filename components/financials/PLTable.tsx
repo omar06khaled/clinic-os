@@ -75,20 +75,20 @@ export function PLTable({
       </div>
 
       {/* ── Table ───────────────────────────────────────────────────────────── */}
-      <div className="px-4 pb-4 print:px-6 print:pb-6" dir="rtl">
+      <div className="px-4 pb-4 print:px-6 print:pb-6">
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b-2">
-              <th className="pb-2 text-right font-semibold w-1/2">{t("plColItem")}</th>
-              <th className="pb-2 text-left font-semibold">{t("plColAmount")}</th>
-              <th className="pb-2 text-left font-semibold">{t("plColPct")}</th>
+              <th className="pb-2 text-start font-semibold w-1/2">{t("plColItem")}</th>
+              <th className="pb-2 text-end font-semibold">{t("plColAmount")}</th>
+              <th className="pb-2 text-end font-semibold">{t("plColPct")}</th>
             </tr>
           </thead>
           <tbody>
             {/* Revenue row */}
             <tr className="border-b font-bold bg-emerald-50 print:bg-transparent">
               <td className="py-2.5 pr-2 text-emerald-700">{t("plTotalRevenue")}</td>
-              <td className="py-2.5 text-left tabular-nums text-emerald-700">
+              <td className="py-2.5 text-end tabular-nums text-emerald-700">
                 {totalRevenue.toLocaleString("ar-EG")}
               </td>
               <td className="py-2.5 text-left text-emerald-700">100%</td>
@@ -100,10 +100,10 @@ export function PLTable({
               return (
                 <tr key={key} className="border-b border-dashed">
                   <td className="py-2 pr-2 text-muted-foreground">{t(tKey)}</td>
-                  <td className="py-2 text-left tabular-nums">
+                  <td className="py-2 text-end tabular-nums">
                     {amount.toLocaleString("ar-EG")}
                   </td>
-                  <td className="py-2 text-left text-muted-foreground">
+                  <td className="py-2 text-end text-muted-foreground">
                     {pct(amount)}
                   </td>
                 </tr>
@@ -113,10 +113,10 @@ export function PLTable({
             {/* Total expenses subtotal */}
             <tr className="border-b font-bold bg-red-50 print:bg-transparent">
               <td className="py-2.5 pr-2 text-red-600">{t("plTotalExpenses")}</td>
-              <td className="py-2.5 text-left tabular-nums text-red-600">
+              <td className="py-2.5 text-end tabular-nums text-red-600">
                 {totalExpenses.toLocaleString("ar-EG")}
               </td>
-              <td className="py-2.5 text-left text-red-600">
+              <td className="py-2.5 text-end text-red-600">
                 {pct(totalExpenses)}
               </td>
             </tr>
@@ -137,14 +137,14 @@ export function PLTable({
                 {t("plNetProfit")}
               </td>
               <td
-                className={`py-2.5 text-left tabular-nums ${
+                className={`py-2.5 text-end tabular-nums ${
                   isPositive ? "text-emerald-700" : "text-red-600"
                 }`}
               >
                 {netProfit.toLocaleString("ar-EG")}
               </td>
               <td
-                className={`py-2.5 text-left ${
+                className={`py-2.5 text-end ${
                   isPositive ? "text-emerald-700" : "text-red-600"
                 }`}
               >
@@ -159,10 +159,10 @@ export function PLTable({
               }`}
             >
               <td className="py-2.5 pr-2">{t("plProfitMargin")}</td>
-              <td className="py-2.5 text-left tabular-nums">
+              <td className="py-2.5 text-end tabular-nums">
                 {profitMargin.toFixed(1)}%
               </td>
-              <td className="py-2.5 text-left text-muted-foreground">—</td>
+              <td className="py-2.5 text-end text-muted-foreground">—</td>
             </tr>
           </tbody>
         </table>

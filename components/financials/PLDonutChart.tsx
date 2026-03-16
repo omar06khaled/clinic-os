@@ -62,7 +62,6 @@ function DonutTooltip({
   return (
     <div
       className="rounded-lg border bg-background p-3 shadow-md text-sm"
-      dir="rtl"
     >
       <p className="font-semibold mb-1">{item.name}</p>
       <p className="text-muted-foreground">
@@ -92,7 +91,7 @@ export function PLDonutChart({ expensesByCategory }: Props) {
   }))
 
   return (
-    <Card dir="rtl">
+    <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
           {t("donutTitle")}

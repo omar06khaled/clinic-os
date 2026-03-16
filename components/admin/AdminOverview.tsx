@@ -87,7 +87,7 @@ function DoctorStatRow({ stat }: { stat: AdminDoctorStat }) {
           )}
         </div>
       </div>
-      <div className="flex items-center gap-4 shrink-0 text-right">
+      <div className="flex items-center gap-4 shrink-0 text-start">
         <div className="text-center hidden sm:block">
           <p className="text-sm font-semibold">{stat.appointmentsToday}</p>
           <p className="text-[10px] text-muted-foreground">مواعيد اليوم</p>
@@ -124,7 +124,7 @@ function ApptRow({ appt }: { appt: AdminAppointmentRow }) {
           {badge.label}
         </Badge>
       </td>
-      <td className="py-2.5 px-3 text-sm text-right tabular-nums">
+      <td className="py-2.5 px-3 text-sm text-end tabular-nums">
         {appt.paymentStatus === "paid" && appt.amountPaid != null
           ? `${fmt(appt.amountPaid)} ج.م`
           : <span className="text-muted-foreground">—</span>}
@@ -147,7 +147,7 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
   const { today, month, doctors, todayAppointments } = data
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
@@ -224,12 +224,12 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground">الوقت</th>
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground">المريض</th>
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground">الطبيب</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الوقت</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">المريض</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الطبيب</th>
                     <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground hidden sm:table-cell">النوع</th>
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground">الحالة</th>
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground">المبلغ</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الحالة</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">المبلغ</th>
                   </tr>
                 </thead>
                 <tbody>

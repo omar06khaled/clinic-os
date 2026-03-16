@@ -25,7 +25,7 @@ function SkeletonRow() {
 
 export default function DashboardLoading() {
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="space-y-1.5 animate-pulse">
         <div className="h-7 w-48 bg-muted rounded" />

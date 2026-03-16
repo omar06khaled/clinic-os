@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { PatientDetail, PrescriptionItem } from "@/types"
 
 // ── Shared constants ──────────────────────────────────────────────────────────
@@ -21,12 +22,13 @@ function getInitials(name: string): string {
   return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("")
 }
 
+// CONDITION_LABELS now maps type → patients namespace translation key
 export const CONDITION_LABELS: Record<string, string> = {
-  diabetes: "سكري",
-  hypertension: "ضغط",
-  cardiac: "قلب",
-  thyroid: "غدة درقية",
-  other: "مزمن",
+  diabetes: "conditionDiabetes",
+  hypertension: "conditionHypertension",
+  cardiac: "conditionCardiac",
+  thyroid: "conditionThyroid",
+  other: "conditionOther",
 }
 
 export const CONDITION_COLORS: Record<string, string> = {
@@ -67,15 +69,21 @@ interface MedicalSnapshotPanelProps {
 }
 
 export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapshotPanelProps) {
+  const t = useTranslations("patients")
   const initials = getInitials(patient.name)
   const avatarColor = getAvatarColor(patient.id)
   const currentMeds = parseCurrentMeds(patient.records[0]?.prescription ?? null)
   const lastVisit = patient.lastVisitDate ? formatDate(patient.lastVisitDate) : null
 
-  const genderLabel = patient.gender === "male" ? "ذكر" : patient.gender === "female" ? "أنثى" : null
+  const genderLabel =
+    patient.gender === "male"
+      ? t("genderMale")
+      : patient.gender === "female"
+      ? t("genderFemale")
+      : null
 
   return (
-    <div className="p-4 space-y-5" dir="rtl">
+    <div className="p-4 space-y-5">
 
       {/* Avatar + Name + Phone */}
       {!compact && (
@@ -96,7 +104,7 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
       <div className="flex flex-wrap gap-2">
         {patient.age && (
           <span className="text-xs bg-muted px-2 py-1 rounded-md font-medium">
-            {patient.age} سنة
+            {t("ageYears", { age: patient.age })}
           </span>
         )}
         {genderLabel && (
@@ -114,10 +122,10 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
       {/* Chronic conditions */}
       <section>
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-          الأمراض المزمنة
+          {t("sectionConditions")}
         </p>
         {patient.conditions.length === 0 ? (
-          <p className="text-xs text-muted-foreground">لا توجد أمراض مزمنة</p>
+          <p className="text-xs text-muted-foreground">{t("noConditions")}</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {patient.conditions.map((c) => (
@@ -127,7 +135,7 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
                   CONDITION_COLORS[c.type] ?? CONDITION_COLORS.other
                 }`}
               >
-                {CONDITION_LABELS[c.type] ?? c.type}
+                {t(CONDITION_LABELS[c.type] ?? CONDITION_LABELS.other)}
               </span>
             ))}
           </div>
@@ -137,7 +145,7 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
       {/* Allergies — highlighted in amber if present */}
       <section>
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-          الحساسية
+          {t("sectionAllergies")}
         </p>
         {patient.allergies ? (
           <div className="bg-amber-50 border border-amber-200 rounded-md px-2.5 py-2">
@@ -149,17 +157,17 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
             </div>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">لا توجد حساسية مسجلة</p>
+          <p className="text-xs text-muted-foreground">{t("noAllergies")}</p>
         )}
       </section>
 
       {/* Current medications (from most recent prescription) */}
       <section>
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-          الأدوية الحالية
+          {t("sectionMedications")}
         </p>
         {currentMeds.length === 0 ? (
-          <p className="text-xs text-muted-foreground">لا توجد أدوية مسجلة</p>
+          <p className="text-xs text-muted-foreground">{t("noMedications")}</p>
         ) : (
           <ul className="space-y-1">
             {currentMeds.map((drug, i) => (
@@ -175,10 +183,10 @@ export function MedicalSnapshotPanel({ patient, compact = false }: MedicalSnapsh
       {/* Last visit */}
       <section>
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-          آخر زيارة
+          {t("sectionLastVisit")}
         </p>
         <p className="text-xs font-medium">
-          {lastVisit ?? "لا توجد زيارات بعد"}
+          {lastVisit ?? t("noVisitsYet")}
         </p>
       </section>
 

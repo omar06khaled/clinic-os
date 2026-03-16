@@ -190,7 +190,7 @@ export function AddAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
         </DialogHeader>
@@ -254,7 +254,7 @@ export function AddAppointmentDialog({
                           key={p.id}
                           type="button"
                           onMouseDown={() => handleSelectPatient(p)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors text-right"
+                          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors text-start"
                         >
                           <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div className="flex flex-col items-start min-w-0">

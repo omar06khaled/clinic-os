@@ -151,7 +151,7 @@ export function AuditorContent() {
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 p-6" dir="rtl">
+    <div className="flex flex-col gap-6 p-6">
       {/* Page header */}
       <div>
         <h1 className="text-xl font-bold">{t("pageTitle")}</h1>

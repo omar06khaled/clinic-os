@@ -4,6 +4,7 @@
 // Supabase Storage upload is stubbed — wire up bucket in Phase 7.
 
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import type { VisitRecordDetail } from "@/types"
 import { DRUGS, type DrugEntry } from "@/lib/drugs"
 
@@ -132,6 +133,7 @@ interface NewVisitPanelProps {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }: NewVisitPanelProps) {
+  const t = useTranslations("patients")
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [complaint, setComplaint]           = useState("")
@@ -256,7 +258,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
       setNewLabAddress("")
       setNewLabPhone("")
     } catch {
-      showToast("error", "فشل حفظ المعمل")
+      showToast("error", t("errorSaveLab"))
     } finally {
       setSavingLab(false)
     }
@@ -284,7 +286,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 
     if (!SpeechRecognition) {
-      showToast("error", "الملاحظات الصوتية تتطلب Chrome على سطح المكتب")
+      showToast("error", t("errorVoiceNotSupported"))
       return
     }
 
@@ -325,7 +327,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
     for (const file of files) {
       if (file.size > 10 * 1024 * 1024) {
-        showToast("error", `${file.name}: الحجم يتجاوز 10 ميجابايت`)
+        showToast("error", t("errorFileSizeExceeded", { fileName: file.name }))
         continue
       }
       const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null
@@ -395,11 +397,11 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "فشل حفظ الزيارة")
+        throw new Error(err.error || t("errorSaveVisit"))
       }
 
       const newRecord: VisitRecordDetail = await res.json()
-      showToast("success", "تم حفظ الزيارة بنجاح")
+      showToast("success", t("successSaveVisit"))
 
       // Brief pause so the doctor sees the success toast before the panel closes
       setTimeout(() => {
@@ -407,19 +409,19 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
         onClose()
       }, 900)
     } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "فشل حفظ الزيارة")
+      showToast("error", err instanceof Error ? err.message : t("errorSaveVisit"))
       setIsSaving(false)
     }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full overflow-hidden" dir="rtl">
+    <div className="flex flex-col h-full overflow-hidden">
 
       {/* ── Sticky header ────────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b bg-card">
         <div className="min-w-0">
-          <h2 className="font-semibold text-sm leading-tight">زيارة جديدة</h2>
+          <h2 className="font-semibold text-sm leading-tight">{t("newVisitTitle")}</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
             {patientName} — {todayDisplay()}
           </p>
@@ -427,7 +429,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
         <button
           onClick={onClose}
           className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
-          aria-label="إغلاق"
+          aria-label={t("closeAriaLabel")}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -453,10 +455,10 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 1 — Chief Complaint */}
         <section>
-          <SectionHeader label="الشكوى الرئيسية" />
+          <SectionHeader label={t("sectionComplaint")} />
           <TextareaBase
             rows={2}
-            placeholder="اكتب الشكوى..."
+            placeholder={t("complaintPlaceholder")}
             value={complaint}
             onChange={(e) => setComplaint(e.target.value)}
           />
@@ -478,10 +480,10 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 2 — Vitals */}
         <section>
-          <SectionHeader label="العلامات الحيوية" />
+          <SectionHeader label={t("sectionVitals")} />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">ضغط الدم</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("vitalBPLabel")}</label>
               <InputBase
                 placeholder="120/80"
                 value={vitalsBP}
@@ -489,7 +491,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
               />
             </div>
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">النبض (نبضة/د)</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("vitalPulseLabel")}</label>
               <InputBase
                 type="number"
                 placeholder="75"
@@ -499,7 +501,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
               />
             </div>
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">الحرارة (°C)</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("vitalTempLabel")}</label>
               <InputBase
                 type="number"
                 placeholder="37.0"
@@ -510,7 +512,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
               />
             </div>
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">الوزن (كجم)</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("vitalWeightLabel")}</label>
               <InputBase
                 type="number"
                 placeholder="70"
@@ -521,7 +523,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
               />
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-[11px] text-muted-foreground mb-1">تشبع الأكسجين (%)</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("vitalO2Label")}</label>
               <InputBase
                 type="number"
                 placeholder="98"
@@ -536,7 +538,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 3 — Symptoms */}
         <section>
-          <SectionHeader label="الأعراض" />
+          <SectionHeader label={t("sectionSymptoms")} />
           <div className="flex flex-wrap gap-1.5">
             {SYMPTOM_OPTIONS.map((s) => {
               const active = symptoms.includes(s)
@@ -559,7 +561,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
           {symptoms.includes("أخرى") && (
             <InputBase
               className="mt-2"
-              placeholder="اكتب العرض هنا..."
+              placeholder={t("customSymptomPlaceholder")}
               value={customSymptom}
               onChange={(e) => setCustomSymptom(e.target.value)}
             />
@@ -568,10 +570,10 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 4 — Diagnosis */}
         <section>
-          <SectionHeader label="التشخيص" />
+          <SectionHeader label={t("sectionDiagnosis")} />
           <TextareaBase
             rows={2}
-            placeholder="التشخيص..."
+            placeholder={t("diagnosisPlaceholder")}
             value={diagnosis}
             onChange={(e) => setDiagnosis(e.target.value)}
           />
@@ -579,7 +581,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 5 — Prescription */}
         <section>
-          <SectionHeader label="الوصفة الطبية" />
+          <SectionHeader label={t("sectionPrescription")} />
           <div className="space-y-3">
             {rxRows.map((row) => {
               const showDropdown = focusedRxId === row.id && drugMatches.length > 0
@@ -597,17 +599,17 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                          حذف
+                          {t("removeRow")}
                         </button>
                       </div>
                     )}
 
                   {/* Drug name with autocomplete */}
                   <div className="relative">
-                    <label className="block text-[11px] text-muted-foreground mb-1">اسم الدواء</label>
+                    <label className="block text-[11px] text-muted-foreground mb-1">{t("drugNameLabel")}</label>
                     <InputBase
                       className="pr-8"
-                      placeholder="ابدأ بالكتابة (3 أحرف على الأقل)..."
+                      placeholder={t("drugSearchPlaceholder")}
                       value={row.drug}
                       onChange={(e) => updateRxRow(row.id, { drug: e.target.value })}
                       onFocus={() => setFocusedRxId(row.id)}
@@ -627,7 +629,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                               e.preventDefault() // prevent blur before click
                               selectDrug(row.id, drug)
                             }}
-                            className="w-full text-right px-3 py-2 text-sm hover:bg-muted transition-colors"
+                            className="w-full text-start px-3 py-2 text-sm hover:bg-muted transition-colors"
                           >
                             <span className="font-medium">{drug.name}</span>
                             <span className="text-muted-foreground text-xs"> — {drug.defaultDose}</span>
@@ -640,15 +642,15 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                   {/* Dose + Frequency + Duration */}
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[11px] text-muted-foreground mb-1">الجرعة</label>
+                      <label className="block text-[11px] text-muted-foreground mb-1">{t("doseLabel")}</label>
                       <InputBase
-                        placeholder="مثال: 500mg"
+                        placeholder={t("dosePlaceholder")}
                         value={row.dose}
                         onChange={(e) => updateRxRow(row.id, { dose: e.target.value })}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] text-muted-foreground mb-1">التكرار</label>
+                      <label className="block text-[11px] text-muted-foreground mb-1">{t("frequencyLabel")}</label>
                       <select
                         value={row.frequency}
                         onChange={(e) => updateRxRow(row.id, { frequency: e.target.value })}
@@ -660,9 +662,9 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] text-muted-foreground mb-1">المدة</label>
+                      <label className="block text-[11px] text-muted-foreground mb-1">{t("durationLabel")}</label>
                       <InputBase
-                        placeholder="مثال: 7 أيام"
+                        placeholder={t("durationPlaceholder")}
                         value={row.duration}
                         onChange={(e) => updateRxRow(row.id, { duration: e.target.value })}
                       />
@@ -681,13 +683,13 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            إضافة دواء
+            {t("addDrug")}
           </button>
         </section>
 
         {/* 6 — Lab Referrals */}
         <section>
-          <SectionHeader label="طلبات المختبر" />
+          <SectionHeader label={t("sectionLabReferrals")} />
           <div className="space-y-3">
             {labRows.map((row) => (
               <div key={row.id} className="border rounded-md p-3 bg-muted/20 space-y-2">
@@ -703,16 +705,16 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                          حذف
+                          {t("removeRow")}
                         </button>
                       </div>
                     )}
 
                 {/* Test name */}
                 <div>
-                  <label className="block text-[11px] text-muted-foreground mb-1">اسم التحليل</label>
+                  <label className="block text-[11px] text-muted-foreground mb-1">{t("labTestLabel")}</label>
                   <InputBase
-                    placeholder="مثال: CBC، HbA1c، TSH..."
+                    placeholder={t("labTestPlaceholder")}
                     value={row.test}
                     onChange={(e) => updateLabRow(row.id, { test: e.target.value })}
                   />
@@ -721,17 +723,17 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                 <div className="grid grid-cols-2 gap-2">
                   {/* Lab dropdown */}
                   <div>
-                    <label className="block text-[11px] text-muted-foreground mb-1">المعمل</label>
+                    <label className="block text-[11px] text-muted-foreground mb-1">{t("labNameLabel")}</label>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() =>
                           setOpenLabDropdownId(openLabDropdownId === row.id ? null : row.id)
                         }
-                        className="w-full flex items-center justify-between gap-2 border rounded-md px-3 py-2 text-sm bg-background text-right hover:bg-muted/30 transition-colors"
+                        className="w-full flex items-center justify-between gap-2 border rounded-md px-3 py-2 text-sm bg-background text-start hover:bg-muted/30 transition-colors"
                       >
                         <span className={row.labName ? "" : "text-muted-foreground"}>
-                          {row.labName || "اختر معملاً"}
+                          {row.labName || t("labSelectPlaceholder")}
                         </span>
                         <svg className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -748,7 +750,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                           <div className="absolute z-20 top-full mt-1 right-0 left-0 bg-background border rounded-md shadow-md overflow-hidden max-h-48 overflow-y-auto">
                             {labs.length === 0 ? (
                               <p className="px-3 py-2 text-sm text-muted-foreground">
-                                لا يوجد معامل محفوظة
+                                {t("labNoSaved")}
                               </p>
                             ) : (
                               labs.map((lab) => (
@@ -759,7 +761,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                                     updateLabRow(row.id, { labName: lab.name })
                                     setOpenLabDropdownId(null)
                                   }}
-                                  className="w-full text-right px-3 py-2 text-sm hover:bg-muted transition-colors"
+                                  className="w-full text-start px-3 py-2 text-sm hover:bg-muted transition-colors"
                                 >
                                   {lab.name}
                                 </button>
@@ -771,9 +773,9 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                                 setOpenLabDropdownId(null)
                                 setAddLabForRowId(row.id)
                               }}
-                              className="w-full text-right px-3 py-2 text-sm text-primary font-medium border-t hover:bg-muted transition-colors"
+                              className="w-full text-start px-3 py-2 text-sm text-primary font-medium border-t hover:bg-muted transition-colors"
                             >
-                              + إضافة معمل جديد
+                              {t("labAddNew")}
                             </button>
                           </div>
                         </>
@@ -783,9 +785,9 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
                   {/* Notes */}
                   <div>
-                    <label className="block text-[11px] text-muted-foreground mb-1">ملاحظات</label>
+                    <label className="block text-[11px] text-muted-foreground mb-1">{t("labNotesLabel")}</label>
                     <InputBase
-                      placeholder="اختياري"
+                      placeholder={t("labNoteOptional")}
                       value={row.notes}
                       onChange={(e) => updateLabRow(row.id, { notes: e.target.value })}
                     />
@@ -800,7 +802,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                     onChange={(e) => updateLabRow(row.id, { received: e.target.checked })}
                     className="rounded"
                   />
-                  <span className="text-muted-foreground text-xs">استُلمت النتائج</span>
+                  <span className="text-muted-foreground text-xs">{t("labResultsReceivedCheck")}</span>
                 </label>
               </div>
             ))}
@@ -809,19 +811,19 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
           {/* Add new lab inline form */}
           {addLabForRowId && (
             <div className="mt-3 border border-primary/30 rounded-md p-3 bg-primary/5 space-y-2">
-              <p className="text-xs font-semibold text-primary">إضافة معمل جديد</p>
+              <p className="text-xs font-semibold text-primary">{t("labAddNewTitle")}</p>
               <InputBase
-                placeholder="اسم المعمل *"
+                placeholder={t("labNameInputPlaceholder")}
                 value={newLabName}
                 onChange={(e) => setNewLabName(e.target.value)}
               />
               <InputBase
-                placeholder="العنوان (اختياري)"
+                placeholder={t("labAddressPlaceholder")}
                 value={newLabAddress}
                 onChange={(e) => setNewLabAddress(e.target.value)}
               />
               <InputBase
-                placeholder="رقم الهاتف (اختياري)"
+                placeholder={t("labPhonePlaceholder")}
                 value={newLabPhone}
                 onChange={(e) => setNewLabPhone(e.target.value)}
               />
@@ -831,7 +833,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                   onClick={() => { setAddLabForRowId(null); setNewLabName(""); setNewLabAddress(""); setNewLabPhone("") }}
                   className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5"
                 >
-                  إلغاء
+                  {t("closeAriaLabel")}
                 </button>
                 <button
                   type="button"
@@ -839,7 +841,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                   onClick={handleSaveLab}
                   className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md disabled:opacity-50 hover:bg-primary/90 transition-colors"
                 >
-                  {savingLab ? "جاري الحفظ..." : "حفظ المعمل"}
+                  {savingLab ? t("savingLab") : t("saveLabButton")}
                 </button>
               </div>
             </div>
@@ -853,28 +855,28 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            إضافة تحليل
+            {t("addLabButton")}
           </button>
         </section>
 
         {/* 7 — Follow-up */}
         <section>
-          <SectionHeader label="خطة المتابعة" />
+          <SectionHeader label={t("sectionFollowUp")} />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">بعد كم يوم</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("followUpDaysLabel")}</label>
               <InputBase
                 type="number"
-                placeholder="مثال: 14"
+                placeholder={t("followUpDaysPlaceholder")}
                 min={1}
                 value={followUpDays}
                 onChange={(e) => setFollowUpDays(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] text-muted-foreground mb-1">السبب</label>
+              <label className="block text-[11px] text-muted-foreground mb-1">{t("followUpReasonLabel")}</label>
               <InputBase
-                placeholder="مراجعة نتائج..."
+                placeholder={t("followUpReasonPlaceholder")}
                 value={followUpReason}
                 onChange={(e) => setFollowUpReason(e.target.value)}
               />
@@ -884,10 +886,10 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
 
         {/* 8 — Doctor's Notes + Voice */}
         <section>
-          <SectionHeader label="ملاحظات الطبيب" />
+          <SectionHeader label={t("sectionDoctorNotes")} />
           <TextareaBase
             rows={3}
-            placeholder="ملاحظات خاصة..."
+            placeholder={t("doctorNotesPlaceholder")}
             value={doctorNotes}
             onChange={(e) => setDoctorNotes(e.target.value)}
           />
@@ -911,17 +913,17 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                 clipRule="evenodd"
               />
             </svg>
-            {isRecording ? "جاري التسجيل... اضغط للإيقاف" : "تسجيل ملاحظة صوتية"}
+            {isRecording ? t("voiceRecording") : t("voiceStart")}
           </button>
           <p className="text-[10px] text-muted-foreground mt-1">
             {/* Phase 7 will upgrade this to OpenAI Whisper for Arabic support */}
-            يستخدم Web Speech API — Chrome على سطح المكتب مُوصى به
+            {t("voiceHint")}
           </p>
         </section>
 
         {/* 9 — Attachments */}
         <section>
-          <SectionHeader label="المرفقات" />
+          <SectionHeader label={t("sectionAttachments")} />
 
           <input
             ref={fileInputRef}
@@ -939,7 +941,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
             <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
-            رفع صورة أو ملف PDF (حد 10MB)
+            {t("attachmentsUploadButton")}
           </button>
 
           {attachments.length > 0 && (
@@ -972,7 +974,7 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
                     type="button"
                     onClick={() => removeAttachment(att.id)}
                     className="absolute top-0.5 right-0.5 w-5 h-5 bg-background/90 border rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="حذف المرفق"
+                    aria-label={t("removeAttachmentAriaLabel")}
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1004,14 +1006,14 @@ export function NewVisitPanel({ patientId, patientName, onClose, onVisitSaved }:
           {isSaving ? (
             <>
               <div className="w-4 h-4 border-2 border-primary-foreground/60 border-t-primary-foreground rounded-full animate-spin" />
-              جاري الحفظ...
+              {t("savingVisit")}
             </>
           ) : (
             <>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              حفظ سجل الزيارة
+              {t("saveVisitButton")}
             </>
           )}
         </button>

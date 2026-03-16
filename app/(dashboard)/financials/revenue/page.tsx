@@ -205,7 +205,7 @@ export default function RevenuePage() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6" dir="rtl">
+    <div className="flex flex-col gap-5 p-4 md:p-6">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">الإيرادات</h1>

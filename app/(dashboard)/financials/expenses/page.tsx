@@ -156,7 +156,7 @@ function BudgetModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-sm" dir="rtl">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>تعديل الميزانية الشهرية</DialogTitle>
         </DialogHeader>
@@ -295,7 +295,7 @@ export default function ExpensesPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6" dir="rtl">
+    <div className="flex flex-col gap-5 p-4 md:p-6">
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">المصروفات</h1>

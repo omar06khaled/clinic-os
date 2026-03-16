@@ -2,7 +2,7 @@
 
 export default function PatientProfileLoading() {
   return (
-    <div className="flex h-full overflow-hidden" dir="rtl">
+    <div className="flex h-full overflow-hidden">
       {/* Zone 1 — left rail */}
       <div className="hidden md:flex w-[220px] shrink-0 flex-col border-l bg-muted/20 p-4 space-y-4 animate-pulse">
         {/* Avatar + name */}

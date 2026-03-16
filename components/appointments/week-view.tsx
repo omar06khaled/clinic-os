@@ -56,7 +56,7 @@ export function WeekView({ appointments, weekStartDate, onSelect }: WeekViewProp
   const totalCount = appointments.length
 
   return (
-    <div className="overflow-x-auto" dir="rtl">
+    <div className="overflow-x-auto">
       <div className="flex min-w-[560px]">
         {days.map(({ dateStr, dow, dayApts, dayNum }) => {
           const isToday = dateStr === todayStr
@@ -128,7 +128,7 @@ export function WeekView({ appointments, weekStartDate, onSelect }: WeekViewProp
 
       {/* Empty state (no appointments the entire week) */}
       {totalCount === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 gap-3" dir="rtl">
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <CalendarX className="h-7 w-7 text-muted-foreground/50" />
           </div>

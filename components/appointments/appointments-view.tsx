@@ -155,7 +155,7 @@ export function AppointmentsView({
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full">
 
       {/* ── Sticky header bar ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background px-4 py-3 flex-wrap gap-y-2">
@@ -233,7 +233,6 @@ export function AppointmentsView({
       {appointments.length > 0 && (
         <div
           className="flex items-center gap-3 border-b bg-muted/20 px-4 py-1.5 text-xs text-muted-foreground"
-          dir="rtl"
         >
           <span>{t("countAppointments", { count: appointments.length })}</span>
           {(() => {

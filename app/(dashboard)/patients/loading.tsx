@@ -38,7 +38,7 @@ function SkeletonRow() {
 
 export default function PatientsLoading() {
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-5 pb-3 border-b animate-pulse">
         <div className="h-6 w-20 bg-muted rounded" />

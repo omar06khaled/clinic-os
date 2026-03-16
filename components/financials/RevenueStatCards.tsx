@@ -103,7 +103,7 @@ export function RevenueStatCards({ stats, prevStats }: Props) {
   const t = useTranslations("financials")
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4" dir="rtl">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {CARD_DEFS.map((card) => (
         <Card key={card.labelKey} className="overflow-hidden">
           <CardContent className="p-4">

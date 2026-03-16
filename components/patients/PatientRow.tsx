@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import type { PatientListItem } from "@/types"
 
 // ── Avatar helpers ────────────────────────────────────────────────────────────
@@ -33,15 +34,7 @@ function getInitials(name: string): string {
     .join("")
 }
 
-// ── Condition badge ───────────────────────────────────────────────────────────
-
-const CONDITION_LABELS: Record<string, string> = {
-  diabetes: "سكري",
-  hypertension: "ضغط",
-  cardiac: "قلب",
-  thyroid: "غدة",
-  other: "مزمن",
-}
+// ── Condition colors ───────────────────────────────────────────────────────────
 
 const CONDITION_COLORS: Record<string, string> = {
   diabetes: "bg-amber-100 text-amber-800",
@@ -51,10 +44,19 @@ const CONDITION_COLORS: Record<string, string> = {
   other: "bg-gray-100 text-gray-700",
 }
 
+// Translation key map for condition labels
+const CONDITION_LABEL_KEYS: Record<string, string> = {
+  diabetes: "conditionDiabetes",
+  hypertension: "conditionHypertension",
+  cardiac: "conditionCardiac",
+  thyroid: "conditionThyroid",
+  other: "conditionOther",
+}
+
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
-function formatLastVisit(isoDate: string | null): string {
-  if (!isoDate) return "لا توجد زيارات"
+function formatLastVisit(isoDate: string | null): string | null {
+  if (!isoDate) return null
   return new Date(isoDate).toLocaleDateString("ar-EG", {
     day: "numeric",
     month: "short",
@@ -71,6 +73,7 @@ interface PatientRowProps {
 
 export function PatientRow({ patient }: PatientRowProps) {
   const router = useRouter()
+  const t = useTranslations("patients")
   const initials = getInitials(patient.name)
   const avatarColor = getAvatarColor(patient.id)
 
@@ -91,7 +94,6 @@ export function PatientRow({ patient }: PatientRowProps) {
         }
       }}
       className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors border-b last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      dir="rtl"
     >
       {/* Avatar */}
       <div
@@ -106,7 +108,7 @@ export function PatientRow({ patient }: PatientRowProps) {
           <span className="font-medium text-sm truncate">{patient.name}</span>
           {patient.isNew && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium flex-shrink-0">
-              جديد
+              {t("newBadge")}
             </span>
           )}
           {primaryCondition && (
@@ -116,7 +118,7 @@ export function PatientRow({ patient }: PatientRowProps) {
                 CONDITION_COLORS.other
               }`}
             >
-              {CONDITION_LABELS[primaryCondition.type] ?? primaryCondition.type}
+              {t(CONDITION_LABEL_KEYS[primaryCondition.type] ?? CONDITION_LABEL_KEYS.other)}
             </span>
           )}
         </div>
@@ -124,10 +126,10 @@ export function PatientRow({ patient }: PatientRowProps) {
       </div>
 
       {/* Last visit + next visit */}
-      <div className="hidden sm:block text-right min-w-[110px]">
-        <p className="text-xs text-muted-foreground">آخر زيارة</p>
+      <div className="hidden sm:block text-start min-w-[110px]">
+        <p className="text-xs text-muted-foreground">{t("lastVisitLabel")}</p>
         <p className="text-xs font-medium">
-          {formatLastVisit(patient.lastVisitDate)}
+          {formatLastVisit(patient.lastVisitDate) ?? t("noVisits")}
         </p>
         {patient.nextVisitDate && (
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-end gap-1">
@@ -140,14 +142,14 @@ export function PatientRow({ patient }: PatientRowProps) {
       </div>
 
       {/* Total visits */}
-      <div className="hidden md:block text-right min-w-[60px]">
-        <p className="text-xs text-muted-foreground">الزيارات</p>
+      <div className="hidden md:block text-start min-w-[60px]">
+        <p className="text-xs text-muted-foreground">{t("totalVisitsLabel")}</p>
         <p className="text-xs font-medium">{patient.totalVisits}</p>
       </div>
 
       {/* Outstanding balance */}
-      <div className="text-right min-w-[80px]">
-        <p className="text-xs text-muted-foreground">المديونية</p>
+      <div className="text-start min-w-[80px]">
+        <p className="text-xs text-muted-foreground">{t("balanceLabel")}</p>
         <p
           className={`text-xs font-semibold ${
             patient.outstandingBalance > 0 ? "text-rose-600" : "text-gray-500"
@@ -155,7 +157,7 @@ export function PatientRow({ patient }: PatientRowProps) {
         >
           {patient.outstandingBalance > 0
             ? `${patient.outstandingBalance.toLocaleString("ar-EG")} ج.م`
-            : "صفر"}
+            : t("balanceZero")}
         </p>
       </div>
 

@@ -228,7 +228,7 @@ function StaffCard({ card }: { card: StaffCard }) {
         {/* Base salary (read-only) */}
         <div className="grid grid-cols-2 gap-y-1.5">
           <span className="text-muted-foreground">{t("salaryBaseSalary")}</span>
-          <span className="font-medium tabular-nums text-left">
+          <span className="font-medium tabular-nums text-end">
             {baseSalary.toLocaleString("ar-EG")} {t("currencySuffix")}
           </span>
         </div>
@@ -291,7 +291,7 @@ function StaffCard({ card }: { card: StaffCard }) {
         <div className="grid grid-cols-2 gap-y-1 pt-1 border-t mt-1">
           <span className="font-semibold text-sm">{t("salaryNetSalary")}</span>
           <span
-            className={`font-bold tabular-nums text-left text-base ${
+            className={`font-bold tabular-nums text-end text-base ${
               netPay !== baseSalary ? "text-primary" : "text-foreground"
             }`}
           >
@@ -375,7 +375,6 @@ export function SalarySection({ expenses }: Props) {
   if (cards.length === 0) {
     return (
       <div
-        dir="rtl"
         className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground"
       >
         {t("salaryNoRecords")}
@@ -386,7 +385,7 @@ export function SalarySection({ expenses }: Props) {
   const totalPayroll = cards.reduce((s, c) => s + c.latestExpense.amountEGP, 0)
 
   return (
-    <div dir="rtl" className="space-y-4">
+    <div className="space-y-4">
       {/* Summary */}
       <div className="rounded-xl border bg-purple-50/40 px-4 py-3 flex items-center justify-between">
         <span className="text-sm font-medium text-purple-800">

@@ -46,7 +46,7 @@ export function DayView({ appointments, onSelect }: DayViewProps) {
 
   if (appointments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-28 gap-3" dir="rtl">
+      <div className="flex flex-col items-center justify-center py-28 gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
           <CalendarX className="h-7 w-7 text-muted-foreground/50" />
         </div>
@@ -78,7 +78,7 @@ export function DayView({ appointments, onSelect }: DayViewProps) {
   )
 
   return (
-    <div className="px-4 py-4 max-w-2xl mx-auto" dir="rtl">
+    <div className="px-4 py-4 max-w-2xl mx-auto">
       {/* Pre-hours (before 8 AM) */}
       {early.length > 0 && (
         <div className="mb-4 space-y-2">

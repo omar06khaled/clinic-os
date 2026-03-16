@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import dynamic from "next/dynamic"
 import type { PatientDetail, ConditionDetail, VisitRecordDetail } from "@/types"
 import { MedicalSnapshotPanel } from "@/components/patients/MedicalSnapshotPanel"
@@ -13,13 +14,18 @@ const ChronicTrackingTab = dynamic(
   () => import("@/components/patients/ChronicTrackingTab").then((m) => ({ default: m.ChronicTrackingTab })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-        جاري تحميل الرسم...
-      </div>
-    ),
+    loading: () => <ChronicTrackingLoading />,
   }
 )
+
+function ChronicTrackingLoading() {
+  const t = useTranslations("common")
+  return (
+    <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+      {t("loadingChart")}
+    </div>
+  )
+}
 
 // ── Avatar helpers (shared with PatientRow) ───────────────────────────────────
 
@@ -54,11 +60,6 @@ function getInitials(name: string): string {
 // ── Tab definitions ───────────────────────────────────────────────────────────
 
 type TabId = "overview" | "visits" | "chronic"
-const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "نظرة عامة" },
-  { id: "visits", label: "سجل الزيارات" },
-  { id: "chronic", label: "المتابعة المزمنة" },
-]
 
 // ── Mobile snapshot banner ────────────────────────────────────────────────────
 
@@ -75,11 +76,11 @@ function MobileSnapshotBanner({
   const avatarColor = getAvatarColor(patient.id)
 
   return (
-    <div className="border-b bg-card" dir="rtl">
+    <div className="border-b bg-card">
       {/* Always-visible row */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-4 py-3 text-right"
+        className="w-full flex items-center gap-3 px-4 py-3 text-start"
       >
         <div
           className={`flex-shrink-0 w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-white text-sm font-semibold`}
@@ -118,12 +119,19 @@ interface PatientProfileViewProps {
 
 export function PatientProfileView({ patient: initialPatient }: PatientProfileViewProps) {
   const router = useRouter()
+  const t = useTranslations("patients")
   const [patient, setPatient] = useState<PatientDetail>(initialPatient)
   const [activeTab, setActiveTab] = useState<TabId>("overview")
   const [zone3Open, setZone3Open] = useState(false)
   const [zone1MobileOpen, setZone1MobileOpen] = useState(false)
 
   const hasChronicConditions = patient.conditions.length > 0
+
+  const TABS: { id: TabId; label: string }[] = [
+    { id: "overview", label: t("tabOverview") },
+    { id: "visits", label: t("tabVisits") },
+    { id: "chronic", label: t("tabChronic") },
+  ]
 
   function handlePatientUpdate(updates: Partial<PatientDetail>) {
     setPatient((p) => ({ ...p, ...updates }))
@@ -168,7 +176,6 @@ export function PatientProfileView({ patient: initialPatient }: PatientProfileVi
         {/* Zone 2 header: back button + patient name + New Visit button */}
         <div
           className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-background"
-          dir="rtl"
         >
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -178,7 +185,7 @@ export function PatientProfileView({ patient: initialPatient }: PatientProfileVi
               <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="hidden sm:inline">المرضى</span>
+              <span className="hidden sm:inline">{t("backToPatients")}</span>
             </button>
             <span className="text-muted-foreground/50 hidden sm:inline">|</span>
             <h1 className="font-semibold text-sm truncate hidden sm:block">{patient.name}</h1>
@@ -191,12 +198,12 @@ export function PatientProfileView({ patient: initialPatient }: PatientProfileVi
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            زيارة جديدة
+            {t("newVisitButton")}
           </button>
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b bg-background px-4 gap-1" dir="rtl">
+        <div className="flex border-b bg-background px-4 gap-1">
           {TABS.map((tab) => {
             if (tab.id === "chronic" && !hasChronicConditions) return null
             return (

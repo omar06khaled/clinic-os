@@ -125,7 +125,7 @@ export default function PLPage() {
         `,
       }} />
 
-      <div className="flex flex-col gap-5 p-4 md:p-6 print:p-0 print:gap-4" dir="rtl">
+      <div className="flex flex-col gap-5 p-4 md:p-6 print:p-0 print:gap-4">
 
         {/* ── Header + navigation (hidden in print) ─────────────────────── */}
         <div className="flex items-center justify-between print:hidden">
