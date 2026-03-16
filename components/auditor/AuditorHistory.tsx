@@ -1,16 +1,9 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { AuditorLogRow, AuditorFilterType } from "@/types"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const FILTER_LABELS: { key: AuditorFilterType; label: string }[] = [
-  { key: "all",       label: "الكل"      },
-  { key: "cash",      label: "نقدي"      },
-  { key: "instapay",  label: "إنستاباي" },
-  { key: "fawry",     label: "فوري"      },
-  { key: "insurance", label: "تأمين"     },
-]
 
 const STATUS_DOT: Record<string, string> = {
   green: "bg-green-500",
@@ -76,6 +69,16 @@ export default function AuditorHistory({
   activeFilter,
   onFilterChange,
 }: Props) {
+  const t = useTranslations("auditor")
+
+  const FILTER_LABELS: { key: AuditorFilterType; label: string }[] = [
+    { key: "all",       label: t("filterAll")       },
+    { key: "cash",      label: t("filterCash")      },
+    { key: "instapay",  label: t("filterInstapay")  },
+    { key: "fawry",     label: t("filterFawry")     },
+    { key: "insurance", label: t("filterInsurance") },
+  ]
+
   return (
     <div className="space-y-3">
       {/* Filter chips */}
@@ -101,11 +104,11 @@ export default function AuditorHistory({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40 text-muted-foreground text-xs">
-                <th className="px-4 py-2.5 text-right font-medium">التاريخ</th>
-                <th className="px-4 py-2.5 text-right font-medium">المتوقع (ج.م)</th>
-                <th className="px-4 py-2.5 text-right font-medium">المُبلَّغ عنه (ج.م)</th>
-                <th className="px-4 py-2.5 text-right font-medium">نسبة الفارق</th>
-                <th className="px-4 py-2.5 text-center font-medium">الحالة</th>
+                <th className="px-4 py-2.5 text-right font-medium">{t("tableDate")}</th>
+                <th className="px-4 py-2.5 text-right font-medium">{t("tableExpected")}</th>
+                <th className="px-4 py-2.5 text-right font-medium">{t("tableReported")}</th>
+                <th className="px-4 py-2.5 text-right font-medium">{t("tableDiscrepancyPct")}</th>
+                <th className="px-4 py-2.5 text-center font-medium">{t("tableStatus")}</th>
               </tr>
             </thead>
             <tbody>
@@ -125,7 +128,7 @@ export default function AuditorHistory({
                     colSpan={5}
                     className="px-4 py-8 text-center text-sm text-muted-foreground"
                   >
-                    لا توجد سجلات مطابقة خلال آخر 30 يوماً
+                    {t("noHistory")}
                   </td>
                 </tr>
               ) : (
@@ -155,7 +158,7 @@ export default function AuditorHistory({
                       <td className="px-4 py-3 tabular-nums">
                         {pct === null ? (
                           <span className="text-muted-foreground text-xs">
-                            لا توجد بيانات
+                            {t("noData")}
                           </span>
                         ) : (
                           <span

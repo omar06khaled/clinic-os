@@ -2,23 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 import dynamic from "next/dynamic"
 import DisclaimerBanner from "@/components/auditor/DisclaimerBanner"
 import ReconciliationCard from "@/components/auditor/ReconciliationCard"
 import DiscrepancyResult from "@/components/auditor/DiscrepancyResult"
 import AuditorHistory from "@/components/auditor/AuditorHistory"
 
-const AuditorTrendChart = dynamic(
-  () => import("@/components/auditor/AuditorTrendChart"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-        جاري تحميل الرسم...
-      </div>
-    ),
-  }
-)
 import { getStatus } from "@/components/auditor/DiscrepancyResult"
 import type {
   AuditorExpectedData,
@@ -40,6 +30,20 @@ function computeSection(expected: number, reported: number): AuditorSectionResul
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function AuditorContent() {
+  const t = useTranslations("auditor")
+
+  const AuditorTrendChart = dynamic(
+    () => import("@/components/auditor/AuditorTrendChart"),
+    {
+      ssr: false,
+      loading: () => (
+        <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+          {t("loadingChart")}
+        </div>
+      ),
+    }
+  )
+
   const [expectedData, setExpectedData]   = useState<AuditorExpectedData | null>(null)
   const [loadingExpected, setLoadingExpected] = useState(true)
 
@@ -56,9 +60,9 @@ export function AuditorContent() {
     fetch("/api/auditor/expected")
       .then((r) => r.json())
       .then((d: AuditorExpectedData) => setExpectedData(d))
-      .catch(() => toast.error("تعذّر تحميل البيانات المتوقعة"))
+      .catch(() => toast.error(t("toastExpectedError")))
       .finally(() => setLoadingExpected(false))
-  }, [])
+  }, [t])
 
   // ── Fetch 30-day history ────────────────────────────────────
   const fetchHistory = useCallback(() => {
@@ -66,9 +70,9 @@ export function AuditorContent() {
     fetch("/api/auditor")
       .then((r) => r.json())
       .then((d: AuditorLogRow[]) => setHistory(Array.isArray(d) ? d : []))
-      .catch(() => toast.error("تعذّر تحميل سجل المطابقة"))
+      .catch(() => toast.error(t("toastHistoryError")))
       .finally(() => setLoadingHistory(false))
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchHistory()
@@ -139,7 +143,7 @@ export function AuditorContent() {
       if (!res.ok) throw new Error()
       fetchHistory()
     } catch {
-      toast.error("تعذّر حفظ نتيجة المطابقة — النتيجة معروضة فقط ولم تُحفظ")
+      toast.error(t("toastSaveError"))
     }
 
     setCalculating(false)
@@ -150,9 +154,9 @@ export function AuditorContent() {
     <div className="flex flex-col gap-6 p-6" dir="rtl">
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-bold">مطابقة الإيرادات</h1>
+        <h1 className="text-xl font-bold">{t("pageTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          مراجعة التحصيلات اليومية ومقارنتها بما هو مُسجَّل في النظام
+          {t("pageSubtitle")}
         </p>
       </div>
 
@@ -172,7 +176,7 @@ export function AuditorContent() {
 
       {/* ④ 30-day history: filter chips + table + chart */}
       <section className="space-y-4">
-        <h2 className="text-base font-semibold">سجل آخر 30 يوماً</h2>
+        <h2 className="text-base font-semibold">{t("historyTitle")}</h2>
         <AuditorHistory
           history={history}
           loading={loadingHistory}

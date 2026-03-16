@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -30,23 +31,6 @@ import {
 
 type PatientResult = { id: string; name: string; phone: string }
 
-// ── Complaint quick-select chips ──────────────────────────────────────────────
-
-const COMPLAINT_CHIPS = [
-  "متابعة دورية",
-  "حمى",
-  "صداع",
-  "ألم بطن",
-  "سعال",
-  "ضيق تنفس",
-  "آلام مفاصل",
-  "دوخة",
-  "غثيان",
-  "ارتفاع ضغط",
-  "مراجعة نتائج",
-  "سكري",
-]
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface AddAppointmentDialogProps {
@@ -61,6 +45,7 @@ export function AddAppointmentDialog({
   onOpenChange,
   defaultDate,
 }: AddAppointmentDialogProps) {
+  const t = useTranslations("appointments")
   const [isSearchPending, startSearchTransition] = useTransition()
   const [isSubmitPending, startSubmitTransition] = useTransition()
 
@@ -184,13 +169,30 @@ export function AddAppointmentDialog({
     setComplaint("")
   }
 
+  // ── Complaint chips (defined here so t() is in scope) ─────────────────────
+
+  const COMPLAINT_CHIPS = [
+    t("chipFollowupPeriodic"),
+    t("chipFever"),
+    t("chipHeadache"),
+    t("chipAbdominalPain"),
+    t("chipCough"),
+    t("chipShortnessOfBreath"),
+    t("chipJointPain"),
+    t("chipDizziness"),
+    t("chipNausea"),
+    t("chipHighBP"),
+    t("chipReviewResults"),
+    t("chipDiabetes"),
+  ]
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
-          <DialogTitle>موعد جديد</DialogTitle>
+          <DialogTitle>{t("dialogTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
@@ -198,7 +200,7 @@ export function AddAppointmentDialog({
           {/* ── Patient section ──────────────────────────────────────────── */}
           {!newPatientMode ? (
             <div className="space-y-1.5">
-              <Label>المريض</Label>
+              <Label>{t("patientLabel")}</Label>
 
               {selected ? (
                 /* Selected patient pill */
@@ -222,7 +224,7 @@ export function AddAppointmentDialog({
                     }}
                     className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    تغيير
+                    {t("changeButton")}
                   </button>
                 </div>
               ) : (
@@ -238,7 +240,7 @@ export function AddAppointmentDialog({
                       value={query}
                       onChange={(e) => handleQueryChange(e.target.value)}
                       onFocus={() => results.length > 0 && setShowResults(true)}
-                      placeholder="اسم المريض أو رقم الهاتف..."
+                      placeholder={t("searchPlaceholder")}
                       className="pr-8"
                       autoComplete="off"
                     />
@@ -270,7 +272,7 @@ export function AddAppointmentDialog({
                   {noResultsVisible && (
                     <div className="space-y-1.5">
                       <p className="text-xs text-muted-foreground px-1">
-                        لا يوجد مرضى مطابقون
+                        {t("noResults")}
                       </p>
                       <button
                         type="button"
@@ -279,7 +281,7 @@ export function AddAppointmentDialog({
                       >
                         <UserPlus className="h-3.5 w-3.5 shrink-0" />
                         <span>
-                          إضافة &quot;{query.trim()}&quot; كمريض جديد
+                          {t("addNewPatient", { query: query.trim() })}
                         </span>
                       </button>
                     </div>
@@ -291,29 +293,29 @@ export function AddAppointmentDialog({
             /* ── New patient form ─────────────────────────────────────────── */
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>مريض جديد</Label>
+                <Label>{t("newPatientLabel")}</Label>
                 <button
                   type="button"
                   onClick={handleBackToSearch}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ArrowRight className="h-3 w-3" />
-                  بحث بدلاً من ذلك
+                  {t("backToSearch")}
                 </button>
               </div>
 
               <div className="rounded-md border border-dashed bg-muted/30 p-3 space-y-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">الاسم الكامل</Label>
+                  <Label className="text-xs text-muted-foreground">{t("fullNameLabel")}</Label>
                   <Input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="اسم المريض الكامل"
+                    placeholder={t("fullNamePlaceholder")}
                     autoFocus
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">رقم الهاتف</Label>
+                  <Label className="text-xs text-muted-foreground">{t("phoneLabel")}</Label>
                   <div className="relative">
                     <Phone className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -334,7 +336,7 @@ export function AddAppointmentDialog({
           {/* ── Date + Time ─────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>التاريخ</Label>
+              <Label>{t("dateLabel")}</Label>
               <Input
                 type="date"
                 value={date}
@@ -344,7 +346,7 @@ export function AddAppointmentDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>الوقت</Label>
+              <Label>{t("timeLabel")}</Label>
               <Input
                 type="time"
                 value={time}
@@ -357,17 +359,17 @@ export function AddAppointmentDialog({
 
           {/* ── Visit type ──────────────────────────────────────────────── */}
           <div className="space-y-1.5">
-            <Label>نوع الزيارة</Label>
+            <Label>{t("visitTypeLabel")}</Label>
             <Select value={visitType} onValueChange={setVisitType}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="new">جديد</SelectItem>
-                <SelectItem value="followup">متابعة</SelectItem>
-                <SelectItem value="chronic">مزمن</SelectItem>
-                <SelectItem value="urgent">طارئ</SelectItem>
-                <SelectItem value="walkin">بدون موعد</SelectItem>
+                <SelectItem value="new">{t("visitTypeNew")}</SelectItem>
+                <SelectItem value="followup">{t("visitTypeFollowup")}</SelectItem>
+                <SelectItem value="chronic">{t("visitTypeChronic")}</SelectItem>
+                <SelectItem value="urgent">{t("visitTypeUrgent")}</SelectItem>
+                <SelectItem value="walkin">{t("visitTypeWalkin")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -375,8 +377,8 @@ export function AddAppointmentDialog({
           {/* ── Complaint ───────────────────────────────────────────────── */}
           <div className="space-y-2">
             <Label>
-              الشكوى{" "}
-              <span className="text-xs text-muted-foreground">(اختياري)</span>
+              {t("complaintLabel")}{" "}
+              <span className="text-xs text-muted-foreground">{t("complaintOptional")}</span>
             </Label>
 
             {/* Quick-select chips */}
@@ -402,7 +404,7 @@ export function AddAppointmentDialog({
             <Input
               value={complaint}
               onChange={(e) => setComplaint(e.target.value)}
-              placeholder="أو اكتب الشكوى..."
+              placeholder={t("complaintPlaceholder")}
             />
           </div>
         </div>
@@ -416,14 +418,14 @@ export function AddAppointmentDialog({
             {isSubmitPending ? (
               <span className="flex items-center gap-1.5">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                جاري الحفظ...
+                {t("saving")}
               </span>
             ) : (
-              "حفظ الموعد"
+              t("saveButton")
             )}
           </Button>
           <Button variant="outline" onClick={handleClose} disabled={isSubmitPending}>
-            إلغاء
+            {t("cancelButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

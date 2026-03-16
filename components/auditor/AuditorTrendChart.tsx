@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import {
   LineChart,
   Line,
@@ -51,14 +52,6 @@ function getLineColor(filter: AuditorFilterType): string {
   }
 }
 
-const FILTER_LABELS: Record<AuditorFilterType, string> = {
-  all:       "الكل",
-  cash:      "نقدي",
-  instapay:  "إنستاباي",
-  fawry:     "فوري",
-  insurance: "تأمين",
-}
-
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
 
 type TooltipPayload = {
@@ -97,6 +90,16 @@ type Props = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AuditorTrendChart({ history, activeFilter }: Props) {
+  const t = useTranslations("auditor")
+
+  const FILTER_LABELS: Record<AuditorFilterType, string> = {
+    all:       t("filterAll"),
+    cash:      t("filterCash"),
+    instapay:  t("filterInstapay"),
+    fawry:     t("filterFawry"),
+    insurance: t("filterInsurance"),
+  }
+
   // Oldest-first for the chart x-axis
   const chartData = [...history]
     .reverse()
@@ -121,7 +124,7 @@ export default function AuditorTrendChart({ history, activeFilter }: Props) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">
-            اتجاه الفارق — آخر 30 يوماً
+            {t("trendTitle")}
           </h3>
           <span className="text-xs text-muted-foreground">{filterLabel}</span>
         </div>
@@ -129,7 +132,7 @@ export default function AuditorTrendChart({ history, activeFilter }: Props) {
       <CardContent>
         {chartData.length < 2 ? (
           <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            لا توجد بيانات كافية لعرض الاتجاه
+            {t("noDataForTrend")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
@@ -171,7 +174,7 @@ export default function AuditorTrendChart({ history, activeFilter }: Props) {
           </ResponsiveContainer>
         )}
         <p className="mt-2 text-xs text-muted-foreground text-center">
-          الخط الأصفر = 5٪ • الخط الأحمر = 15٪
+          {t("thresholdNote")}
         </p>
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react"
@@ -94,6 +95,7 @@ export function AppointmentsView({
   defaultFee,
 }: AppointmentsViewProps) {
   const router = useRouter()
+  const t = useTranslations("appointments")
   const [isPending, startTransition] = useTransition()
 
   // Local state for optimistic navigation feedback
@@ -163,10 +165,10 @@ export function AppointmentsView({
           <CalendarDays className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold leading-tight">المواعيد</h1>
+              <h1 className="text-base font-semibold leading-tight">{t("pageTitle")}</h1>
               {isToday && (
                 <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                  اليوم
+                  {t("todayBadge")}
                 </span>
               )}
             </div>
@@ -182,7 +184,7 @@ export function AppointmentsView({
             className="h-8 w-8 p-0"
             onClick={handlePrev}
             disabled={isPending}
-            aria-label="السابق"
+            aria-label={t("prevAriaLabel")}
           >
             {/* ChevronRight navigates "back" in RTL */}
             <ChevronRight className="h-4 w-4" />
@@ -194,7 +196,7 @@ export function AppointmentsView({
             onClick={handleToday}
             disabled={isPending}
           >
-            اليوم
+            {t("todayButton")}
           </Button>
           <Button
             variant="outline"
@@ -202,7 +204,7 @@ export function AppointmentsView({
             className="h-8 w-8 p-0"
             onClick={handleNext}
             disabled={isPending}
-            aria-label="التالي"
+            aria-label={t("nextAriaLabel")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -221,7 +223,7 @@ export function AppointmentsView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {v === "day" ? "يوم" : "أسبوع"}
+              {v === "day" ? t("viewDay") : t("viewWeek")}
             </button>
           ))}
         </div>
@@ -233,7 +235,7 @@ export function AppointmentsView({
           className="flex items-center gap-3 border-b bg-muted/20 px-4 py-1.5 text-xs text-muted-foreground"
           dir="rtl"
         >
-          <span>{appointments.length} موعد</span>
+          <span>{t("countAppointments", { count: appointments.length })}</span>
           {(() => {
             const arrived = appointments.filter((a) => a.status === "arrived").length
             const scheduled = appointments.filter((a) => a.status === "scheduled").length
@@ -242,12 +244,12 @@ export function AppointmentsView({
               <>
                 {arrived > 0 && (
                   <span className="text-green-600 dark:text-green-400">
-                    {arrived} حضر
+                    {t("countArrived", { count: arrived })}
                   </span>
                 )}
-                {scheduled > 0 && <span>{scheduled} قادم</span>}
+                {scheduled > 0 && <span>{t("countUpcoming", { count: scheduled })}</span>}
                 {noshow > 0 && (
-                  <span className="text-red-500">{noshow} غاب</span>
+                  <span className="text-red-500">{t("countNoshow", { count: noshow })}</span>
                 )}
               </>
             )
@@ -280,7 +282,7 @@ export function AppointmentsView({
       {/* ── Floating + Add Appointment button ─────────────────────────── */}
       <button
         onClick={() => setAddOpen(true)}
-        aria-label="إضافة موعد جديد"
+        aria-label={t("addAriaLabel")}
         className={cn(
           "fixed z-30 flex h-14 w-14 items-center justify-center rounded-full",
           "bg-primary text-primary-foreground shadow-lg",

@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { Clock } from "lucide-react"
 import type { SerializedAppointment } from "./appointments-view"
@@ -51,6 +54,16 @@ export function AppointmentCard({
   compact = false,
   onClick,
 }: AppointmentCardProps) {
+  const t = useTranslations("appointments")
+
+  const visitTypeLabel: Record<string, string> = {
+    new: t("visitTypeNew"),
+    followup: t("visitTypeFollowup"),
+    chronic: t("visitTypeChronic"),
+    urgent: t("visitTypeUrgent"),
+    walkin: t("visitTypeWalkin"),
+  }
+
   return (
     <div
       onClick={onClick}
@@ -79,7 +92,7 @@ export function AppointmentCard({
 
           {apt.patient.isNew && (
             <span className="inline-flex shrink-0 items-center rounded-full bg-blue-100 px-1.5 text-[9px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-              جديد
+              {t("newPatientBadge")}
             </span>
           )}
 
@@ -90,7 +103,7 @@ export function AppointmentCard({
               VISIT_TYPE_COLORS[apt.visitType] ?? "bg-gray-100 text-gray-700"
             )}
           >
-            {VISIT_TYPE_LABELS[apt.visitType] ?? apt.visitType}
+            {visitTypeLabel[apt.visitType] ?? apt.visitType}
           </span>
         </div>
 
@@ -108,10 +121,10 @@ export function AppointmentCard({
             )}
           >
             {apt.status === "arrived"
-              ? "حضر"
+              ? t("statusArrived")
               : apt.status === "noshow"
-                ? "غاب"
-                : "ملغي"}
+                ? t("statusNoshow")
+                : t("statusCancelled")}
           </span>
         )}
       </div>
@@ -142,7 +155,7 @@ export function AppointmentCard({
               compact ? "text-[9px]" : "text-[10px]"
             )}
           >
-            مؤكد
+            {t("statusConfirmed")}
           </span>
         )}
 
@@ -163,7 +176,7 @@ export function AppointmentCard({
       {/* Row 4: payment badge (non-compact) */}
       {!compact && apt.paymentStatus === "paid" && apt.amountPaid != null && (
         <span className="inline-flex items-center mt-1 rounded-full bg-green-100 px-1.5 text-[10px] font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300">
-          مدفوع · {apt.amountPaid.toLocaleString("en-US")} ج.م
+          {t("paidBadge", { amount: apt.amountPaid.toLocaleString("en-US") })}
         </span>
       )}
     </div>

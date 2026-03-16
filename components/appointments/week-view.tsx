@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { CalendarX } from "lucide-react"
 import type { SerializedAppointment } from "./appointments-view"
@@ -18,16 +21,6 @@ function isSameCairoDay(isoString: string, dateStr: string): boolean {
   return cairo === dateStr
 }
 
-const DAY_LABELS = [
-  "الأحد",
-  "الإثنين",
-  "الثلاثاء",
-  "الأربعاء",
-  "الخميس",
-  "الجمعة",
-  "السبت",
-]
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface WeekViewProps {
@@ -38,7 +31,18 @@ interface WeekViewProps {
 }
 
 export function WeekView({ appointments, weekStartDate, onSelect }: WeekViewProps) {
+  const t = useTranslations("appointments")
   const todayStr = new Date().toLocaleDateString("sv", { timeZone: "Africa/Cairo" })
+
+  const DAY_LABELS = [
+    t("daySun"),
+    t("dayMon"),
+    t("dayTue"),
+    t("dayWed"),
+    t("dayThu"),
+    t("dayFri"),
+    t("daySat"),
+  ]
 
   // Build 7 day descriptors (Sun → Sat)
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -128,7 +132,7 @@ export function WeekView({ appointments, weekStartDate, onSelect }: WeekViewProp
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <CalendarX className="h-7 w-7 text-muted-foreground/50" />
           </div>
-          <p className="text-sm text-muted-foreground">لا يوجد مواعيد هذا الأسبوع</p>
+          <p className="text-sm text-muted-foreground">{t("emptyWeek")}</p>
         </div>
       )}
     </div>

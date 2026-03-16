@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Info } from "lucide-react"
 
 /**
@@ -7,6 +8,8 @@ import { Info } from "lucide-react"
  * Cannot be dismissed or hidden.
  */
 export default function DisclaimerBanner() {
+  const t = useTranslations("auditor")
+
   return (
     <div
       role="note"
@@ -14,9 +17,7 @@ export default function DisclaimerBanner() {
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden />
       <p className="text-sm leading-relaxed text-blue-800">
-        قد تعكس الفروق مرضى حضروا دون تسجيل مسبق، أو إعفاءات من الرسوم، أو
-        فوارق زمنية في التسوية. استخدم هذا الملخص كمرجع للمطابقة، وليس كإثبات
-        نهائي.
+        {t("disclaimer")}
       </p>
     </div>
   )

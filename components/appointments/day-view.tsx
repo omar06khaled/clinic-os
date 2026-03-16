@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { CalendarX } from "lucide-react"
 import type { SerializedAppointment } from "./appointments-view"
@@ -22,14 +25,6 @@ function getCairoHour(isoString: string): number {
   )
 }
 
-function formatHourLabel(hour: number): string {
-  if (hour === 0) return "12:00 ص"
-  if (hour === 12) return "12:00 م"
-  const suffix = hour < 12 ? "ص" : "م"
-  const h = hour > 12 ? hour - 12 : hour
-  return `${h}:00 ${suffix}`
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface DayViewProps {
@@ -39,13 +34,23 @@ interface DayViewProps {
 }
 
 export function DayView({ appointments, onSelect }: DayViewProps) {
+  const t = useTranslations("appointments")
+
+  function formatHourLabel(hour: number): string {
+    if (hour === 0) return t("timeMidnight")
+    if (hour === 12) return t("timeNoon")
+    const suffix = hour < 12 ? t("timeAM") : t("timePM")
+    const h = hour > 12 ? hour - 12 : hour
+    return `${h}:00 ${suffix}`
+  }
+
   if (appointments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-28 gap-3" dir="rtl">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
           <CalendarX className="h-7 w-7 text-muted-foreground/50" />
         </div>
-        <p className="text-sm text-muted-foreground">لا يوجد مواعيد لهذا اليوم</p>
+        <p className="text-sm text-muted-foreground">{t("emptyDay")}</p>
       </div>
     )
   }
