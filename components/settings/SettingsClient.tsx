@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Building2, Phone, MapPin, Banknote, Users, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -48,6 +49,8 @@ type Props = {
 }
 
 export function SettingsClient({ currentRole, currentDoctor, clinic: initialClinic, doctors }: Props) {
+  const t = useTranslations("settings")
+  const tc = useTranslations("common")
   const isAdmin = currentRole === "admin"
 
   // Clinic profile form state (admin only)
@@ -65,7 +68,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
   async function handleSaveClinic(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) {
-      setClinicError("Clinic name is required")
+      setClinicError(t("clinicNameRequired"))
       return
     }
     setSavingClinic(true)
@@ -84,14 +87,14 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error ?? "Failed to save")
+        throw new Error(err.error ?? t("saveFailed"))
       }
       const updated = await res.json()
       setClinic(updated)
       setClinicSaved(true)
       setTimeout(() => setClinicSaved(false), 3000)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to save"
+      const msg = err instanceof Error ? err.message : t("saveFailed")
       setClinicError(msg)
       toast.error(msg)
     } finally {
@@ -110,7 +113,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
       if (!res.ok) throw new Error()
     } catch {
       setIsMultiDoctor(!checked) // revert on failure
-      toast.error("تعذّر تحديث وضع تعدد الأطباء")
+      toast.error(t("multiDoctorToggleError"))
     }
   }
 
@@ -118,9 +121,9 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
     <div className="p-6 space-y-8 max-w-3xl mx-auto">
       {/* Page header */}
       <div className="space-y-0.5">
-        <h1 className="text-xl font-semibold">Settings</h1>
+        <h1 className="text-xl font-semibold">{t("pageTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          {isAdmin ? "Manage clinic configuration and team" : "View clinic information"}
+          {isAdmin ? t("pageSubtitleAdmin") : t("pageSubtitleViewer")}
         </p>
       </div>
 
@@ -129,10 +132,10 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
         <CardHeader>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            Clinic Information
+            {t("clinicInfoTitle")}
           </CardTitle>
           {!isAdmin && (
-            <CardDescription>Only admins can edit clinic settings.</CardDescription>
+            <CardDescription>{t("clinicInfoReadOnly")}</CardDescription>
           )}
         </CardHeader>
         <CardContent>
@@ -140,7 +143,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
             <form onSubmit={handleSaveClinic} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="clinic-name">Clinic Name *</Label>
+                  <Label htmlFor="clinic-name">{t("clinicNameLabel")}</Label>
                   <Input
                     id="clinic-name"
                     value={name}
@@ -151,7 +154,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
                 <div className="space-y-1.5">
                   <Label htmlFor="clinic-phone">
                     <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" /> Phone
+                      <Phone className="h-3 w-3" /> {t("clinicPhoneLabel")}
                     </span>
                   </Label>
                   <Input
@@ -164,7 +167,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="clinic-address">
                     <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> Address
+                      <MapPin className="h-3 w-3" /> {t("clinicAddressLabel")}
                     </span>
                   </Label>
                   <Input
@@ -177,7 +180,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
                 <div className="space-y-1.5">
                   <Label htmlFor="clinic-fee">
                     <span className="flex items-center gap-1">
-                      <Banknote className="h-3 w-3" /> Default Visit Fee (EGP)
+                      <Banknote className="h-3 w-3" /> {t("clinicFeeLabel")}
                     </span>
                   </Label>
                   <Input
@@ -192,29 +195,29 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
 
               {clinicError && <p className="text-sm text-destructive">{clinicError}</p>}
               {clinicSaved && (
-                <p className="text-sm text-emerald-600">Saved successfully.</p>
+                <p className="text-sm text-emerald-600">{t("savedSuccessfully")}</p>
               )}
 
               <Button type="submit" size="sm" disabled={savingClinic}>
-                {savingClinic ? "Saving…" : "Save Changes"}
+                {savingClinic ? tc("saving") : t("saveChanges")}
               </Button>
             </form>
           ) : (
             <div className="space-y-3 text-sm">
               <div className="flex gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Name</span>
+                <span className="text-muted-foreground w-28 shrink-0">{t("readOnlyName")}</span>
                 <span className="font-medium">{clinic.name}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Phone</span>
+                <span className="text-muted-foreground w-28 shrink-0">{t("readOnlyPhone")}</span>
                 <span>{clinic.phone ?? "—"}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Address</span>
+                <span className="text-muted-foreground w-28 shrink-0">{t("readOnlyAddress")}</span>
                 <span>{clinic.address ?? "—"}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Default Fee</span>
+                <span className="text-muted-foreground w-28 shrink-0">{t("readOnlyFee")}</span>
                 <span>{clinic.defaultFee.toLocaleString("en-US")} EGP</span>
               </div>
             </div>
@@ -244,22 +247,21 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
           <CardHeader>
             <CardTitle className="text-base font-medium flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              Team Management
+              {t("teamTitle")}
             </CardTitle>
             <CardDescription>
-              Manage doctors and receptionists. Each doctor sees only their own
-              patients and records.
+              {t("teamDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Multi-doctor toggle */}
             <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
               <div>
-                <p className="text-sm font-medium">This clinic has multiple doctors</p>
+                <p className="text-sm font-medium">{t("multiDoctorTitle")}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {isMultiDoctor
-                    ? "Multi-doctor mode is active — data isolation is enforced."
-                    : "Currently single-doctor mode."}
+                    ? t("multiDoctorActiveDesc")
+                    : t("multiDoctorInactiveDesc")}
                 </p>
               </div>
               <button
@@ -273,7 +275,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
               >
                 <span
                   className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                    isMultiDoctor ? "translate-x-6" : "translate-x-1"
+                    isMultiDoctor ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"
                   }`}
                 />
               </button>
@@ -283,7 +285,7 @@ export function SettingsClient({ currentRole, currentDoctor, clinic: initialClin
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-medium">Team Members</h3>
+                  <h3 className="text-sm font-medium">{t("teamMembersTitle")}</h3>
                 </div>
                 <DoctorManagement initialDoctors={doctors} />
               </div>

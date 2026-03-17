@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,14 +25,14 @@ type DayKey =
 type DaySchedule = { open: boolean; from: string; to: string }
 type Hours = Record<DayKey, DaySchedule>
 
-const DAYS: { key: DayKey; en: string; ar: string }[] = [
-  { key: "saturday",  en: "Saturday",  ar: "السبت" },
-  { key: "sunday",    en: "Sunday",    ar: "الأحد" },
-  { key: "monday",    en: "Monday",    ar: "الإثنين" },
-  { key: "tuesday",   en: "Tuesday",   ar: "الثلاثاء" },
-  { key: "wednesday", en: "Wednesday", ar: "الأربعاء" },
-  { key: "thursday",  en: "Thursday",  ar: "الخميس" },
-  { key: "friday",    en: "Friday",    ar: "الجمعة" },
+const DAYS: { key: DayKey; en: string }[] = [
+  { key: "saturday",  en: "Saturday"  },
+  { key: "sunday",    en: "Sunday"    },
+  { key: "monday",    en: "Monday"    },
+  { key: "tuesday",   en: "Tuesday"   },
+  { key: "wednesday", en: "Wednesday" },
+  { key: "thursday",  en: "Thursday"  },
+  { key: "friday",    en: "Friday"    },
 ]
 
 const DEFAULT_HOURS: Hours = {
@@ -61,6 +62,9 @@ type Props = {
 }
 
 export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
+  const t = useTranslations("settings")
+  const tc = useTranslations("common")
+
   const parsed: Hours = openingHoursJson
     ? { ...DEFAULT_HOURS, ...(JSON.parse(openingHoursJson) as Partial<Hours>) }
     : DEFAULT_HOURS
@@ -69,6 +73,16 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const DAY_LABELS: Record<DayKey, string> = {
+    saturday:  t("daySaturday"),
+    sunday:    t("daySunday"),
+    monday:    t("dayMonday"),
+    tuesday:   t("dayTuesday"),
+    wednesday: t("dayWednesday"),
+    thursday:  t("dayThursday"),
+    friday:    t("dayFriday"),
+  }
 
   function toggleDay(day: DayKey) {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], open: !prev[day].open } }))
@@ -99,7 +113,7 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
       setTimeout(() => setSaved(false), 3000)
     } else {
       const data = await res.json()
-      setError(data.error ?? "Failed to save")
+      setError(data.error ?? t("saveFailed"))
     }
   }
 
@@ -108,14 +122,14 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
       <CardHeader>
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          Clinic Hours
+          {t("hoursTitle")}
         </CardTitle>
         {!isAdmin && (
-          <CardDescription>Only admins can edit clinic hours.</CardDescription>
+          <CardDescription>{t("hoursReadOnly")}</CardDescription>
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {DAYS.map(({ key, en, ar }) => {
+        {DAYS.map(({ key, en }) => {
           const day = hours[key]
           return (
             <div
@@ -137,7 +151,7 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
                 >
                   <span
                     className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
-                      day.open ? "translate-x-4" : "translate-x-0.5"
+                      day.open ? "translate-x-4 rtl:-translate-x-4" : "translate-x-0.5 rtl:-translate-x-0.5"
                     }`}
                   />
                 </button>
@@ -145,7 +159,7 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
                 {/* Day name */}
                 <div className="w-28 shrink-0">
                   <p className="text-sm font-medium">{en}</p>
-                  <p className="text-xs text-muted-foreground">{ar}</p>
+                  <p className="text-xs text-muted-foreground">{DAY_LABELS[key]}</p>
                 </div>
               </div>
 
@@ -187,7 +201,7 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
                   </Select>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground italic">Closed</span>
+                <span className="text-xs text-muted-foreground italic">{t("closed")}</span>
               )}
             </div>
           )
@@ -196,9 +210,9 @@ export function ClinicHours({ isAdmin, openingHoursJson }: Props) {
         {isAdmin && (
           <div className="pt-2 flex items-center gap-3">
             <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving…" : "Save Hours"}
+              {saving ? tc("saving") : t("saveHours")}
             </Button>
-            {saved && <p className="text-sm text-emerald-600">Saved successfully.</p>}
+            {saved && <p className="text-sm text-emerald-600">{t("savedSuccessfully")}</p>}
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         )}

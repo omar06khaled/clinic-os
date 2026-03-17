@@ -1,6 +1,7 @@
 "use client"
 
-import { CalendarDays, Banknote, TrendingUp, Users, CheckCircle, XCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { CalendarDays, Banknote, TrendingUp, Users, CheckCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AdminOverviewData, AdminAppointmentRow, AdminDoctorStat } from "@/app/api/admin/overview/route"
@@ -17,21 +18,6 @@ function fmtTime(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   })
-}
-
-const VISIT_TYPE_LABEL: Record<string, string> = {
-  new: "جديد",
-  followup: "متابعة",
-  chronic: "مزمن",
-  urgent: "طارئ",
-  walkin: "حضور مباشر",
-}
-
-const STATUS_BADGE: Record<string, { label: string; class: string }> = {
-  scheduled: { label: "مجدول", class: "bg-blue-50 text-blue-700 border-blue-200" },
-  arrived:   { label: "حضر",   class: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  noshow:    { label: "غياب",  class: "bg-red-50 text-red-700 border-red-200" },
-  cancelled: { label: "ملغي",  class: "bg-gray-50 text-gray-600 border-gray-200" },
 }
 
 // ── Stat card ──────────────────────────────────────────────────────────────
@@ -76,6 +62,7 @@ function StatCard({
 // ── Doctor row ─────────────────────────────────────────────────────────────
 
 function DoctorStatRow({ stat }: { stat: AdminDoctorStat }) {
+  const t = useTranslations("admin")
   return (
     <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
       <div className="flex items-center gap-3 min-w-0">
@@ -90,15 +77,15 @@ function DoctorStatRow({ stat }: { stat: AdminDoctorStat }) {
       <div className="flex items-center gap-4 shrink-0 text-start">
         <div className="text-center hidden sm:block">
           <p className="text-sm font-semibold">{stat.appointmentsToday}</p>
-          <p className="text-[10px] text-muted-foreground">مواعيد اليوم</p>
+          <p className="text-[10px] text-muted-foreground">{t("doctorColTodayAppts")}</p>
         </div>
         <div className="text-center hidden sm:block">
           <p className="text-sm font-semibold text-emerald-600">{stat.arrived}</p>
-          <p className="text-[10px] text-muted-foreground">حضر</p>
+          <p className="text-[10px] text-muted-foreground">{t("doctorColArrived")}</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold">{fmt(stat.revenueThisMonth)} ج.م</p>
-          <p className="text-[10px] text-muted-foreground">الشهر</p>
+          <p className="text-sm font-semibold">{fmt(stat.revenueThisMonth)} {t("currencySuffix")}</p>
+          <p className="text-[10px] text-muted-foreground">{t("doctorColRevMonth")}</p>
         </div>
       </div>
     </div>
@@ -108,6 +95,23 @@ function DoctorStatRow({ stat }: { stat: AdminDoctorStat }) {
 // ── Appointment row ────────────────────────────────────────────────────────
 
 function ApptRow({ appt }: { appt: AdminAppointmentRow }) {
+  const t = useTranslations("admin")
+
+  const VISIT_TYPE_LABEL: Record<string, string> = {
+    new:      t("visitTypeNew"),
+    followup: t("visitTypeFollowup"),
+    chronic:  t("visitTypeChronic"),
+    urgent:   t("visitTypeUrgent"),
+    walkin:   t("visitTypeWalkin"),
+  }
+
+  const STATUS_BADGE: Record<string, { label: string; class: string }> = {
+    scheduled: { label: t("statusScheduled"), class: "bg-blue-50 text-blue-700 border-blue-200" },
+    arrived:   { label: t("statusArrived"),   class: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    noshow:    { label: t("statusNoshow"),    class: "bg-red-50 text-red-700 border-red-200" },
+    cancelled: { label: t("statusCancelled"), class: "bg-gray-50 text-gray-600 border-gray-200" },
+  }
+
   const badge = STATUS_BADGE[appt.status] ?? STATUS_BADGE.scheduled
   return (
     <tr className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
@@ -126,7 +130,7 @@ function ApptRow({ appt }: { appt: AdminAppointmentRow }) {
       </td>
       <td className="py-2.5 px-3 text-sm text-end tabular-nums">
         {appt.paymentStatus === "paid" && appt.amountPaid != null
-          ? `${fmt(appt.amountPaid)} ج.م`
+          ? `${fmt(appt.amountPaid)} ${t("currencySuffix")}`
           : <span className="text-muted-foreground">—</span>}
       </td>
     </tr>
@@ -136,6 +140,8 @@ function ApptRow({ appt }: { appt: AdminAppointmentRow }) {
 // ── Main component ─────────────────────────────────────────────────────────
 
 export function AdminOverview({ data }: { data: AdminOverviewData }) {
+  const t = useTranslations("admin")
+
   const todayLabel = new Date().toLocaleDateString("ar-EG", {
     timeZone: "Africa/Cairo",
     weekday: "long",
@@ -151,9 +157,9 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
       {/* Header */}
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">نظرة عامة على العيادة</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("pageTitle")}</h1>
           <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-600 bg-amber-50 dark:bg-amber-950/20">
-            مدير
+            {t("adminBadge")}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">{todayLabel}</p>
@@ -162,31 +168,31 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="مواعيد اليوم"
+          title={t("statTodayAppts")}
           value={today.totalAppointments}
           icon={CalendarDays}
           color="blue"
-          sub={`${today.arrived} حضر · ${today.noshow} غاب`}
+          sub={t("statTodayArrivedNoshow", { arrived: today.arrived, noshow: today.noshow })}
         />
         <StatCard
-          title="تحصيلات اليوم"
-          value={`${fmt(today.revenueToday)} ج.م`}
+          title={t("statTodayRevenue")}
+          value={`${fmt(today.revenueToday)} ${t("currencySuffix")}`}
           icon={Banknote}
           color="green"
         />
         <StatCard
-          title="إيرادات الشهر"
-          value={`${fmt(month.totalRevenue)} ج.م`}
+          title={t("statMonthRevenue")}
+          value={`${fmt(month.totalRevenue)} ${t("currencySuffix")}`}
           icon={TrendingUp}
           color="blue"
-          sub={`مصروفات: ${fmt(month.totalExpenses)} ج.م`}
+          sub={t("statMonthExpenses", { expenses: fmt(month.totalExpenses) })}
         />
         <StatCard
-          title="صافي الربح"
-          value={`${fmt(month.netProfit)} ج.م`}
+          title={t("statNetProfit")}
+          value={`${fmt(month.netProfit)} ${t("currencySuffix")}`}
           icon={TrendingUp}
           color={month.netProfit >= 0 ? "green" : "red"}
-          sub="هذا الشهر"
+          sub={t("statThisMonth")}
         />
       </div>
 
@@ -197,12 +203,12 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              الأطباء النشطون
+              {t("activeDoctorsTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4">
             {doctors.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">لا يوجد أطباء</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("noDoctors")}</p>
             ) : (
               doctors.map((stat) => <DoctorStatRow key={stat.doctorId} stat={stat} />)
             )}
@@ -214,22 +220,22 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              مواعيد اليوم — جميع الأطباء
+              {t("allDoctorsApptTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0 pb-0 overflow-x-auto">
             {todayAppointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">لا توجد مواعيد اليوم</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">{t("noApptsToday")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
-                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الوقت</th>
-                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">المريض</th>
-                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الطبيب</th>
-                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground hidden sm:table-cell">النوع</th>
-                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">الحالة</th>
-                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">المبلغ</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">{t("colTime")}</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">{t("colPatient")}</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">{t("colDoctor")}</th>
+                    <th className="py-2 px-3 text-right text-xs font-medium text-muted-foreground hidden sm:table-cell">{t("colType")}</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">{t("colStatus")}</th>
+                    <th className="py-2 px-3 text-start text-xs font-medium text-muted-foreground">{t("colAmount")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -246,10 +252,7 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
       {/* Admin note */}
       <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
         <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" />
-        <span>
-          الملاحظات السريرية والتشخيصات والوصفات الطبية متاحة للأطباء فقط.
-          هذه اللوحة تعرض البيانات الإدارية والمالية فقط.
-        </span>
+        <span>{t("adminNote")}</span>
       </div>
     </div>
   )

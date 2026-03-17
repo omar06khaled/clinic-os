@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { CalendarDays, Plus, Clock, UserCheck, UserX } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,14 +33,6 @@ function fmtTime(iso: string) {
   })
 }
 
-const VISIT_TYPE_LABEL: Record<string, string> = {
-  new:      "جديد",
-  followup: "متابعة",
-  chronic:  "مزمن",
-  urgent:   "طارئ",
-  walkin:   "حضور مباشر",
-}
-
 const VISIT_TYPE_CLASS: Record<string, string> = {
   new:      "border-blue-300 text-blue-700 bg-blue-50",
   followup: "border-violet-300 text-violet-700 bg-violet-50",
@@ -48,18 +41,34 @@ const VISIT_TYPE_CLASS: Record<string, string> = {
   walkin:   "border-teal-300 text-teal-700 bg-teal-50",
 }
 
-const STATUS_BADGE: Record<string, { label: string; class: string }> = {
-  scheduled:  { label: "مجدول",  class: "border-blue-200 text-blue-700 bg-blue-50"       },
-  arrived:    { label: "حضر",    class: "border-emerald-200 text-emerald-700 bg-emerald-50" },
-  noshow:     { label: "غياب",   class: "border-red-200 text-red-700 bg-red-50"           },
-  cancelled:  { label: "ملغي",   class: "border-gray-200 text-gray-600 bg-gray-50"        },
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  scheduled:  "border-blue-200 text-blue-700 bg-blue-50",
+  arrived:    "border-emerald-200 text-emerald-700 bg-emerald-50",
+  noshow:     "border-red-200 text-red-700 bg-red-50",
+  cancelled:  "border-gray-200 text-gray-600 bg-gray-50",
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }: Props) {
+  const t = useTranslations("receptionist")
   const [appointments, setAppointments] = useState(initialAppts)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  const VISIT_TYPE_LABEL: Record<string, string> = {
+    new:      t("visitTypeNew"),
+    followup: t("visitTypeFollowup"),
+    chronic:  t("visitTypeChronic"),
+    urgent:   t("visitTypeUrgent"),
+    walkin:   t("visitTypeWalkin"),
+  }
+
+  const STATUS_BADGE_LABEL: Record<string, string> = {
+    scheduled: t("statusScheduled"),
+    arrived:   t("statusArrived"),
+    noshow:    t("statusNoshow"),
+    cancelled: t("statusCancelled"),
+  }
 
   async function updateStatus(id: string, status: "arrived" | "noshow") {
     setLoadingId(id)
@@ -86,12 +95,12 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
-          <h1 className="text-2xl font-semibold tracking-tight">مواعيد اليوم</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("pageTitle")}</h1>
           <p className="text-sm text-muted-foreground">{todayLabel}</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
           <CalendarDays className="h-4 w-4" />
-          <span>{appointments.length} موعد</span>
+          <span>{t("appointmentCount", { count: appointments.length })}</span>
         </div>
       </div>
 
@@ -102,10 +111,8 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
             <CalendarDays className="h-7 w-7 text-muted-foreground" />
           </div>
           <div className="space-y-1">
-            <p className="text-base font-medium">لا توجد مواعيد اليوم</p>
-            <p className="text-sm text-muted-foreground">
-              يمكنك إضافة موعد جديد باستخدام الزر أدناه
-            </p>
+            <p className="text-base font-medium">{t("emptyTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("emptySubtitle")}</p>
           </div>
         </div>
       ) : (
@@ -114,21 +121,22 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">الوقت</th>
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">المريض</th>
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">الطبيب</th>
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">نوع الزيارة</th>
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">الحالة</th>
-                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">إجراء</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colTime")}</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colPatient")}</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colDoctor")}</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colVisitType")}</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colStatus")}</th>
+                  <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("colAction")}</th>
                 </tr>
               </thead>
               <tbody>
                 {appointments.map((appt) => {
-                  const statusInfo = STATUS_BADGE[appt.status] ?? STATUS_BADGE.scheduled
-                  const typeLabel  = VISIT_TYPE_LABEL[appt.visitType] ?? appt.visitType
-                  const typeClass  = VISIT_TYPE_CLASS[appt.visitType] ?? ""
-                  const isLoading  = loadingId === appt.id
-                  const isDone     = appt.status === "arrived" || appt.status === "noshow" || appt.status === "cancelled"
+                  const statusLabel = STATUS_BADGE_LABEL[appt.status] ?? STATUS_BADGE_LABEL.scheduled
+                  const statusClass = STATUS_BADGE_CLASS[appt.status] ?? STATUS_BADGE_CLASS.scheduled
+                  const typeLabel   = VISIT_TYPE_LABEL[appt.visitType] ?? appt.visitType
+                  const typeClass   = VISIT_TYPE_CLASS[appt.visitType] ?? ""
+                  const isLoading   = loadingId === appt.id
+                  const isDone      = appt.status === "arrived" || appt.status === "noshow" || appt.status === "cancelled"
 
                   return (
                     <tr
@@ -170,9 +178,9 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
                       <td className="px-4 py-3">
                         <Badge
                           variant="outline"
-                          className={cn("text-xs", statusInfo.class)}
+                          className={cn("text-xs", statusClass)}
                         >
-                          {statusInfo.label}
+                          {statusLabel}
                         </Badge>
                       </td>
 
@@ -188,7 +196,7 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
                               onClick={() => updateStatus(appt.id, "arrived")}
                             >
                               <UserCheck className="h-3.5 w-3.5" />
-                              حضر
+                              {t("markArrived")}
                             </Button>
                             <Button
                               size="sm"
@@ -198,7 +206,7 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
                               onClick={() => updateStatus(appt.id, "noshow")}
                             >
                               <UserX className="h-3.5 w-3.5" />
-                              غياب
+                              {t("markNoShow")}
                             </Button>
                           </div>
                         ) : (
@@ -222,7 +230,7 @@ export function ReceptionistDashboard({ appointments: initialAppts, todayLabel }
           onClick={() => window.location.href = "/appointments"}
         >
           <Plus className="h-5 w-5" />
-          <span>إضافة موعد</span>
+          <span>{t("addAppointment")}</span>
         </Button>
       </div>
     </div>

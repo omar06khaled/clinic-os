@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { WifiOff } from "lucide-react"
 
 export function OfflineBanner() {
+  const t = useTranslations("common")
   const [offline, setOffline] = useState(false)
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export function OfflineBanner() {
       aria-live="assertive"
     >
       <WifiOff className="h-4 w-4 shrink-0" />
-      <span>لا يوجد اتصال بالإنترنت — بعض الميزات قد لا تعمل حتى يعود الاتصال.</span>
+      <span>{t("offlineMessage")}</span>
     </div>
   )
 }
