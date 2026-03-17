@@ -17,16 +17,29 @@ export async function GET() {
   // ── 2. Look up doctor — never trust client-supplied doctorId ─────────────
   const doctor = await prisma.doctor.findUnique({
     where: { email: user.email },
-    select: { id: true, clinic: { select: { defaultFee: true } } },
+    select: { id: true, role: true, clinicId: true, clinic: { select: { defaultFee: true } } },
   })
 
   if (!doctor) {
     return NextResponse.json({ error: "Doctor not found" }, { status: 403 })
   }
 
-  // ── 3. Fetch patients with all computed-field data ───────────────────────
+  // ── 3. Determine patient scope based on role ─────────────────────────────
+  let patientWhere: { doctorId: string | { in: string[] } }
+
+  if (doctor.role === "admin" || doctor.role === "receptionist" || doctor.role === "owner") {
+    const clinicDoctors = await prisma.doctor.findMany({
+      where: { clinicId: doctor.clinicId },
+      select: { id: true },
+    })
+    patientWhere = { doctorId: { in: clinicDoctors.map((d) => d.id) } }
+  } else {
+    patientWhere = { doctorId: doctor.id }
+  }
+
+  // ── 4. Fetch patients with all computed-field data ───────────────────────
   const patients = await prisma.patient.findMany({
-    where: { doctorId: doctor.id },
+    where: patientWhere,
     include: {
       conditions: {
         select: { id: true, type: true, notes: true },

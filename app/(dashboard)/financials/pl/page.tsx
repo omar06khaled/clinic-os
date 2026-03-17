@@ -1,21 +1,29 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { ChevronRight, ChevronLeft, Printer } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { PLSummaryCards } from "@/components/financials/PLSummaryCards"
 import type { BarPeriod } from "@/components/financials/PLBarChart"
 
+// ─── Chart loading fallback ───────────────────────────────────────────────────
+
+function ChartLoadingFallback() {
+  const tc = useTranslations("common")
+  return (
+    <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+      {tc("loadingChart")}
+    </div>
+  )
+}
+
 const PLBarChart = dynamic(
   () => import("@/components/financials/PLBarChart").then((m) => ({ default: m.PLBarChart })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-        جاري تحميل الرسم...
-      </div>
-    ),
+    loading: () => <ChartLoadingFallback />,
   }
 )
 
@@ -23,11 +31,7 @@ const PLDonutChart = dynamic(
   () => import("@/components/financials/PLDonutChart").then((m) => ({ default: m.PLDonutChart })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-        جاري تحميل الرسم...
-      </div>
-    ),
+    loading: () => <ChartLoadingFallback />,
   }
 )
 import { PLTable } from "@/components/financials/PLTable"
@@ -60,6 +64,7 @@ function formatMonthLabel(monthKey: string): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PLPage() {
+  const tf = useTranslations("financials")
   const today = cairoMonthKey()
 
   const [selectedMonth, setSelectedMonth] = useState(today)
@@ -118,7 +123,7 @@ export default function PLPage() {
             @page { margin: 1.5cm; }
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .print-page-number::after {
-              content: "صفحة " counter(page);
+              content: "${tf("printPageNumberPrefix")}" counter(page);
               counter-increment: page;
             }
           }
@@ -129,7 +134,7 @@ export default function PLPage() {
 
         {/* ── Header + navigation (hidden in print) ─────────────────────── */}
         <div className="flex items-center justify-between print:hidden">
-          <h1 className="text-xl font-bold">الأرباح والخسائر</h1>
+          <h1 className="text-xl font-bold">{tf("tabPL")}</h1>
           <Button
             size="sm"
             variant="outline"
@@ -137,7 +142,7 @@ export default function PLPage() {
             onClick={handlePrint}
           >
             <Printer className="h-4 w-4" />
-            تصدير PDF
+            {tf("exportPdfButton")}
           </Button>
         </div>
 
@@ -168,7 +173,7 @@ export default function PLPage() {
             className="mr-2 h-8 text-xs"
             onClick={() => setSelectedMonth(today)}
           >
-            الشهر الحالي
+            {tf("currentMonth")}
           </Button>
         </div>
 

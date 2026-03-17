@@ -53,7 +53,7 @@ export async function PATCH(req: Request, { params }: Context) {
     patient: { select: { name: true, phone: true } },
   } as const
 
-  if (doctor.role === "admin" || doctor.role === "receptionist") {
+  if (doctor.role === "admin" || doctor.role === "receptionist" || doctor.role === "owner") {
     const clinicDoctors = await prisma.doctor.findMany({
       where: { clinicId: doctor.clinicId },
       select: { id: true },

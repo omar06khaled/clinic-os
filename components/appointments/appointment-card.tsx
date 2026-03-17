@@ -8,11 +8,11 @@ import type { SerializedAppointment } from "./appointments-view"
 // ── Shared label / colour maps ────────────────────────────────────────────────
 
 export const VISIT_TYPE_LABELS: Record<string, string> = {
-  new: "جديد",
-  followup: "متابعة",
-  chronic: "مزمن",
-  urgent: "طارئ",
-  walkin: "بدون موعد",
+  new: "New",
+  followup: "Follow-up",
+  chronic: "Chronic",
+  urgent: "Urgent",
+  walkin: "Walk-in",
 }
 
 export const VISIT_TYPE_COLORS: Record<string, string> = {

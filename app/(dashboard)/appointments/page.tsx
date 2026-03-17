@@ -20,7 +20,12 @@ export default async function AppointmentsPage({ searchParams }: Props) {
   })
   if (!doctor) redirect("/login?error=not_provisioned")
 
-  const view = searchParams.view === "week" ? "week" : "day"
+  const view =
+    searchParams.view === "week"
+      ? "week"
+      : searchParams.view === "month"
+      ? "month"
+      : "day"
   const cairoTodayStr = new Date().toLocaleDateString("sv", { timeZone: "Africa/Cairo" })
   const dateStr = searchParams.date ?? cairoTodayStr
 
@@ -39,6 +44,12 @@ export default async function AppointmentsPage({ searchParams }: Props) {
     const satStr = new Date(satMs).toISOString().slice(0, 10)
     rangeStart = new Date(`${sunStr}T00:00:00+02:00`)
     rangeEnd = new Date(`${satStr}T23:59:59+02:00`)
+  } else if (view === "month") {
+    // Month: first day to last day of the month containing dateStr
+    const firstDay = `${y}-${String(m).padStart(2, "0")}-01`
+    const lastDay = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10)
+    rangeStart = new Date(`${firstDay}T00:00:00+02:00`)
+    rangeEnd = new Date(`${lastDay}T23:59:59+02:00`)
   } else {
     rangeStart = new Date(`${dateStr}T00:00:00+02:00`)
     rangeEnd = new Date(`${dateStr}T23:59:59+02:00`)

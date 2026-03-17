@@ -18,7 +18,7 @@ async function getAdminDoctor() {
   })
 
   if (!doctor) return { error: "Doctor not found", status: 403, doctor: null }
-  if (doctor.role !== "admin")
+  if (doctor.role !== "admin" && doctor.role !== "owner")
     return { error: "Admin role required", status: 403, doctor: null }
 
   return { error: null, status: 200, doctor }
@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "name is required" }, { status: 400 })
   if (!email || typeof email !== "string" || !email.includes("@"))
     return NextResponse.json({ error: "valid email is required" }, { status: 400 })
-  if (!["doctor", "admin", "receptionist"].includes(role))
-    return NextResponse.json({ error: "role must be doctor, admin, or receptionist" }, { status: 400 })
+  if (!["doctor", "admin", "receptionist", "owner"].includes(role))
+    return NextResponse.json({ error: "role must be doctor, admin, receptionist, or owner" }, { status: 400 })
 
   // Prevent duplicate email
   const existing = await prisma.doctor.findUnique({ where: { email } })

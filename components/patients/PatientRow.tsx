@@ -74,6 +74,7 @@ interface PatientRowProps {
 export function PatientRow({ patient }: PatientRowProps) {
   const router = useRouter()
   const t = useTranslations("patients")
+  const tf = useTranslations("financials")
   const initials = getInitials(patient.name)
   const avatarColor = getAvatarColor(patient.id)
 
@@ -156,7 +157,7 @@ export function PatientRow({ patient }: PatientRowProps) {
           }`}
         >
           {patient.outstandingBalance > 0
-            ? `${patient.outstandingBalance.toLocaleString("ar-EG")} ج.م`
+            ? `${patient.outstandingBalance.toLocaleString("ar-EG")} ${tf("currencySuffix")}`
             : t("balanceZero")}
         </p>
       </div>

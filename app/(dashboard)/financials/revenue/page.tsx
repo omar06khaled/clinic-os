@@ -1,21 +1,29 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { ChevronRight, ChevronLeft, GitCompare } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RevenueStatCards } from "@/components/financials/RevenueStatCards"
 
+// ─── Chart loading fallback ───────────────────────────────────────────────────
+
+function ChartLoadingFallback() {
+  const tc = useTranslations("common")
+  return (
+    <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
+      {tc("loadingChart")}
+    </div>
+  )
+}
+
 const RevenueChart = dynamic(
   () => import("@/components/financials/RevenueChart").then((m) => ({ default: m.RevenueChart })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-        جاري تحميل الرسم...
-      </div>
-    ),
+    loading: () => <ChartLoadingFallback />,
   }
 )
 import { RevenueList, type FilterChip } from "@/components/financials/RevenueList"
@@ -89,6 +97,7 @@ type Period = "day" | "week" | "month"
 // ─── Page component ───────────────────────────────────────────────────────────
 
 export default function RevenuePage() {
+  const tf = useTranslations("financials")
   const today = todayCairo()
 
   // ── Date range state ────────────────────────────────────────────────────────
@@ -203,12 +212,21 @@ export default function RevenuePage() {
     fetchData()
   }
 
+  // ── Period label helper ─────────────────────────────────────────────────────
+  function periodLabel(p: Period): string {
+    switch (p) {
+      case "day":   return tf("periodDay")
+      case "week":  return tf("periodWeek")
+      case "month": return tf("periodMonth")
+    }
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6">
       {/* Page header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">الإيرادات</h1>
+        <h1 className="text-xl font-bold">{tf("tabRevenue")}</h1>
       </div>
 
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
@@ -227,7 +245,7 @@ export default function RevenuePage() {
                     : "hover:bg-muted"
                 }`}
               >
-                {p === "day" ? "يوم" : p === "week" ? "أسبوع" : "شهر"}
+                {periodLabel(p)}
               </button>
             ))}
           </div>
@@ -262,7 +280,7 @@ export default function RevenuePage() {
             className="h-8 text-xs"
             onClick={() => switchPeriod(period)}
           >
-            الآن
+            {tf("periodNow")}
           </Button>
 
           {/* Compare toggle */}
@@ -273,7 +291,7 @@ export default function RevenuePage() {
             onClick={() => setCompareEnabled((v) => !v)}
           >
             <GitCompare className="h-3.5 w-3.5" />
-            مقارنة
+            {tf("compareButton")}
           </Button>
         </div>
 
@@ -282,7 +300,7 @@ export default function RevenuePage() {
           {/* Primary range */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 min-w-0 w-full sm:w-auto">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">من</Label>
+              <Label className="text-xs text-muted-foreground">{tf("barFrom")}</Label>
               <input
                 type="date"
                 value={primaryFrom}
@@ -294,7 +312,7 @@ export default function RevenuePage() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">إلى</Label>
+              <Label className="text-xs text-muted-foreground">{tf("barTo")}</Label>
               <input
                 type="date"
                 value={primaryTo}
@@ -309,10 +327,10 @@ export default function RevenuePage() {
           {compareEnabled && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 border-r pr-4 min-w-0">
               <span className="mb-1.5 text-xs font-medium text-muted-foreground">
-                مقارنة:
+                {tf("compareLabel")}
               </span>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">من</Label>
+                <Label className="text-xs text-muted-foreground">{tf("barFrom")}</Label>
                 <input
                   type="date"
                   value={compareFrom}
@@ -324,7 +342,7 @@ export default function RevenuePage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">إلى</Label>
+                <Label className="text-xs text-muted-foreground">{tf("barTo")}</Label>
                 <input
                   type="date"
                   value={compareTo}
@@ -364,7 +382,7 @@ export default function RevenuePage() {
 
           {/* Revenue list */}
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <h2 className="mb-3 text-sm font-semibold">قائمة المدفوعات</h2>
+            <h2 className="mb-3 text-sm font-semibold">{tf("paymentsListTitle")}</h2>
             <RevenueList
               rows={data.primary.rows}
               filter={filter}

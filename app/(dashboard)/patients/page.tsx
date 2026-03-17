@@ -21,7 +21,7 @@ export default async function PatientsPage() {
   // ── Determine patient scope based on role ─────────────────────────────────
   let patientWhere: { doctorId: string | { in: string[] } }
 
-  if (doctor.role === "admin" || doctor.role === "receptionist") {
+  if (doctor.role === "admin" || doctor.role === "receptionist" || doctor.role === "owner") {
     // Clinic-wide: all doctors in the same clinic
     const clinicDoctors = await prisma.doctor.findMany({
       where: { clinicId: doctor.clinicId },

@@ -32,9 +32,9 @@ export default async function SettingsPage() {
   })
   if (!clinic) redirect("/login?error=not_provisioned")
 
-  // Admins also see the full doctor list
+  // Admins and owners also see the full doctor list
   const doctors =
-    doctor.role === "admin"
+    doctor.role === "admin" || doctor.role === "owner"
       ? await prisma.doctor.findMany({
           where: { clinicId: doctor.clinicId },
           select: {

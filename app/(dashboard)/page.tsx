@@ -27,8 +27,8 @@ export default async function DashboardPage() {
   const locale = await getLocale()
   const dateLocale = locale === "ar" ? "ar-EG" : "en-US"
 
-  // ── Admin path — clinic-wide overview, no clinical records ────────────────
-  if (doctor.role === "admin") {
+  // ── Admin/Owner path — clinic-wide overview, no clinical records ──────────
+  if (doctor.role === "admin" || doctor.role === "owner") {
     const cairoDateStr = new Date().toLocaleDateString("sv", { timeZone: "Africa/Cairo" })
     const cairoMonthStr = cairoDateStr.slice(0, 7)
     const [cairoYear, cairoMonth] = cairoMonthStr.split("-").map(Number)
@@ -90,6 +90,14 @@ export default async function DashboardPage() {
       .filter((a) => a.paymentStatus === "paid")
       .reduce((s, a) => s + (a.amountPaid ?? 0), 0)
 
+    const todayLabel = new Date().toLocaleDateString(dateLocale, {
+      timeZone: "Africa/Cairo",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+
     const adminData: AdminOverviewData = {
       today: {
         totalAppointments: todayAppts.length,
@@ -126,7 +134,7 @@ export default async function DashboardPage() {
       })),
     }
 
-    return <AdminOverview data={adminData} />
+    return <AdminOverview data={adminData} todayLabel={todayLabel} role={doctor.role} />
   }
 
   // ── Receptionist path — all doctors' today appointments, no financial data ─
@@ -182,6 +190,7 @@ export default async function DashboardPage() {
   // ── Doctor path — single-doctor dashboard ─────────────────────────────────
 
   const t = await getTranslations("dashboard")
+  const tf = await getTranslations("financials")
 
   const cairoDateStr = new Date().toLocaleDateString("sv", {
     timeZone: "Africa/Cairo",
@@ -339,14 +348,14 @@ export default async function DashboardPage() {
         />
         <StatCard
           title={t("outstandingPayments")}
-          value={`${outstandingEGP.toLocaleString("en-US")} ج.م`}
+          value={`${outstandingEGP.toLocaleString("en-US")} ${tf("currencySuffix")}`}
           icon={Banknote}
           color="amber"
           sub={t("outstandingPatientsSub", { count: outstandingCount })}
         />
         <StatCard
           title={t("netProfit")}
-          value={`${netProfitThisMonth.toLocaleString("en-US")} ج.م`}
+          value={`${netProfitThisMonth.toLocaleString("en-US")} ${tf("currencySuffix")}`}
           icon={TrendingUp}
           color={netProfitThisMonth >= 0 ? "green" : "red"}
           sub={t("thisMonth")}

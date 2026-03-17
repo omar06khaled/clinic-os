@@ -9,6 +9,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 
 import { DayView } from "./day-view"
 import { WeekView } from "./week-view"
+import { MonthView } from "./month-view"
 import { AppointmentDetailPanel } from "./appointment-detail-panel"
 import { AddAppointmentDialog } from "./add-appointment-dialog"
 
@@ -47,6 +48,25 @@ function getWeekSunday(dateStr: string): string {
   return new Date(ms - dow * 86_400_000).toISOString().slice(0, 10)
 }
 
+function getMonthFirstDay(dateStr: string): string {
+  const [y, m] = dateStr.split("-").map(Number)
+  return `${y}-${String(m).padStart(2, "0")}-01`
+}
+
+function addMonths(firstDayStr: string, delta: number): string {
+  const [y, m] = firstDayStr.split("-").map(Number)
+  return new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 10)
+}
+
+function formatMonthLabel(dateStr: string): string {
+  const [y, m] = dateStr.split("-").map(Number)
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("ar-EG", {
+    timeZone: "UTC",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 function formatDayLabel(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number)
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("ar-EG", {
@@ -81,7 +101,7 @@ function formatWeekLabel(weekSunday: string): string {
 
 interface AppointmentsViewProps {
   appointments: SerializedAppointment[]
-  initialView: "day" | "week"
+  initialView: "day" | "week" | "month"
   initialDate: string // YYYY-MM-DD
   defaultFee: number
 }
@@ -99,7 +119,7 @@ export function AppointmentsView({
   const [isPending, startTransition] = useTransition()
 
   // Local state for optimistic navigation feedback
-  const [view, setView] = useState<"day" | "week">(initialView)
+  const [view, setView] = useState<"day" | "week" | "month">(initialView)
   const [date, setDate] = useState(initialDate)
 
   // UI state
@@ -110,7 +130,7 @@ export function AppointmentsView({
 
   // ── Navigation ──────────────────────────────────────────────────────────
 
-  function navigate(newView: "day" | "week", newDate: string) {
+  function navigate(newView: "day" | "week" | "month", newDate: string) {
     setView(newView)
     setDate(newDate)
     setSelectedApt(null)
@@ -122,34 +142,50 @@ export function AppointmentsView({
   function handlePrev() {
     if (view === "day") {
       navigate("day", addDays(date, -1))
-    } else {
+    } else if (view === "week") {
       navigate("week", addDays(getWeekSunday(date), -7))
+    } else {
+      navigate("month", addMonths(getMonthFirstDay(date), -1))
     }
   }
 
   function handleNext() {
     if (view === "day") {
       navigate("day", addDays(date, 1))
-    } else {
+    } else if (view === "week") {
       navigate("week", addDays(getWeekSunday(date), 7))
+    } else {
+      navigate("month", addMonths(getMonthFirstDay(date), 1))
     }
   }
 
   function handleToday() {
-    navigate(view, todayStr)
+    if (view === "month") {
+      navigate("month", getMonthFirstDay(todayStr))
+    } else {
+      navigate(view, todayStr)
+    }
   }
 
-  function handleToggleView(newView: "day" | "week") {
-    // When switching to week, anchor to the week containing the current date
-    const anchor = newView === "week" ? getWeekSunday(date) : date
-    navigate(newView, anchor)
+  function handleToggleView(newView: "day" | "week" | "month") {
+    if (newView === "week") {
+      navigate("week", getWeekSunday(date))
+    } else if (newView === "month") {
+      navigate("month", getMonthFirstDay(date))
+    } else {
+      navigate("day", date)
+    }
   }
 
   // ── Labels ──────────────────────────────────────────────────────────────
 
   const weekSunday = getWeekSunday(date)
   const label =
-    view === "day" ? formatDayLabel(date) : formatWeekLabel(weekSunday)
+    view === "day"
+      ? formatDayLabel(date)
+      : view === "week"
+      ? formatWeekLabel(weekSunday)
+      : formatMonthLabel(date)
   const isToday = view === "day" && date === todayStr
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -210,9 +246,9 @@ export function AppointmentsView({
           </Button>
         </div>
 
-        {/* Day / Week toggle */}
+        {/* Day / Week / Month toggle */}
         <div className="flex items-center rounded-md border bg-muted/30 p-0.5">
-          {(["day", "week"] as const).map((v) => (
+          {(["day", "week", "month"] as const).map((v) => (
             <button
               key={v}
               onClick={() => handleToggleView(v)}
@@ -223,7 +259,7 @@ export function AppointmentsView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {v === "day" ? t("viewDay") : t("viewWeek")}
+              {v === "day" ? t("viewDay") : v === "week" ? t("viewWeek") : t("viewMonth")}
             </button>
           ))}
         </div>
@@ -269,11 +305,18 @@ export function AppointmentsView({
             date={date}
             onSelect={setSelectedApt}
           />
-        ) : (
+        ) : view === "week" ? (
           <WeekView
             appointments={appointments}
             weekStartDate={weekSunday}
             onSelect={setSelectedApt}
+          />
+        ) : (
+          <MonthView
+            appointments={appointments}
+            monthDate={date}
+            onSelect={setSelectedApt}
+            onDayClick={(d) => navigate("day", d)}
           />
         )}
       </div>

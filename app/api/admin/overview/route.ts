@@ -54,7 +54,7 @@ export async function GET() {
   })
 
   if (!admin) return NextResponse.json({ error: "Doctor not found" }, { status: 403 })
-  if (admin.role !== "admin")
+  if (admin.role !== "admin" && admin.role !== "owner")
     return NextResponse.json({ error: "Admin role required" }, { status: 403 })
 
   // ── Date boundaries (Cairo = UTC+2) ───────────────────────────────────────

@@ -30,6 +30,8 @@ const ADMIN_NAV = [
   { href: "/settings",     key: "settings" as const,     icon: Settings         },
 ]
 
+const OWNER_NAV = ADMIN_NAV
+
 const DOCTOR_NAV = [
   { href: "/",             key: "dashboard" as const,    icon: LayoutDashboard  },
   { href: "/appointments", key: "appointments" as const, icon: CalendarDays     },
@@ -53,6 +55,8 @@ const ADMIN_BOTTOM = [
   { href: "/financials",   key: "financials" as const,   abbrevKey: "financials" as const,    icon: CircleDollarSign },
   { href: "/settings",     key: "settings" as const,     abbrevKey: "settings" as const,      icon: Settings         },
 ]
+
+const OWNER_BOTTOM = ADMIN_BOTTOM
 
 const DOCTOR_BOTTOM = [
   { href: "/",             key: "dashboard" as const,    abbrevKey: "dashboard" as const,     icon: LayoutDashboard },
@@ -92,33 +96,41 @@ export function Sidebar({ doctor }: { doctor: DoctorInfo }) {
   const tSidebar = useTranslations("sidebar")
 
   const navLinks =
-    doctor.role === "admin"
-      ? ADMIN_NAV
-      : doctor.role === "receptionist"
-        ? RECEPTIONIST_NAV
-        : DOCTOR_NAV
+    doctor.role === "owner"
+      ? OWNER_NAV
+      : doctor.role === "admin"
+        ? ADMIN_NAV
+        : doctor.role === "receptionist"
+          ? RECEPTIONIST_NAV
+          : DOCTOR_NAV
 
   // Role badge
   const badgeClassName =
-    doctor.role === "admin"
-      ? "shrink-0 px-1.5 py-0 text-[10px] border-amber-400/30 text-amber-300 bg-amber-400/10"
-      : doctor.role === "receptionist"
-        ? "shrink-0 px-1.5 py-0 text-[10px] border-purple-400/30 text-purple-300 bg-purple-400/10"
-        : "shrink-0 px-1.5 py-0 text-[10px] border-blue-400/30 text-blue-300 bg-blue-400/10"
+    doctor.role === "owner"
+      ? "shrink-0 px-1.5 py-0 text-[10px] border-rose-400/30 text-rose-300 bg-rose-400/10"
+      : doctor.role === "admin"
+        ? "shrink-0 px-1.5 py-0 text-[10px] border-amber-400/30 text-amber-300 bg-amber-400/10"
+        : doctor.role === "receptionist"
+          ? "shrink-0 px-1.5 py-0 text-[10px] border-purple-400/30 text-purple-300 bg-purple-400/10"
+          : "shrink-0 px-1.5 py-0 text-[10px] border-blue-400/30 text-blue-300 bg-blue-400/10"
 
   const badgeLabel =
-    doctor.role === "admin"
-      ? tSidebar("roleAdmin")
-      : doctor.role === "receptionist"
-        ? tSidebar("roleReceptionist")
-        : tSidebar("roleDoctor")
+    doctor.role === "owner"
+      ? tSidebar("roleOwner")
+      : doctor.role === "admin"
+        ? tSidebar("roleAdmin")
+        : doctor.role === "receptionist"
+          ? tSidebar("roleReceptionist")
+          : tSidebar("roleDoctor")
 
   const subtitle =
-    doctor.role === "admin"
-      ? tSidebar("subtitleAdmin")
-      : doctor.role === "receptionist"
-        ? tSidebar("subtitleReceptionist")
-        : doctor.specialty ?? tSidebar("subtitleDoctor")
+    doctor.role === "owner"
+      ? tSidebar("subtitleOwner")
+      : doctor.role === "admin"
+        ? tSidebar("subtitleAdmin")
+        : doctor.role === "receptionist"
+          ? tSidebar("subtitleReceptionist")
+          : doctor.specialty ?? tSidebar("subtitleDoctor")
 
   return (
     <aside className="sidebar-nav hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 bg-sidebar border-r border-sidebar-border">
@@ -198,11 +210,13 @@ export function BottomTabBar({ role = "doctor" }: { role?: string }) {
   const tSidebar = useTranslations("sidebar")
 
   const tabs =
-    role === "admin"
-      ? ADMIN_BOTTOM
-      : role === "receptionist"
-        ? RECEPTIONIST_BOTTOM
-        : DOCTOR_BOTTOM
+    role === "owner"
+      ? OWNER_BOTTOM
+      : role === "admin"
+        ? ADMIN_BOTTOM
+        : role === "receptionist"
+          ? RECEPTIONIST_BOTTOM
+          : DOCTOR_BOTTOM
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-16 items-stretch bg-sidebar border-t border-sidebar-border">

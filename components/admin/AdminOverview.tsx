@@ -139,16 +139,17 @@ function ApptRow({ appt }: { appt: AdminAppointmentRow }) {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-export function AdminOverview({ data }: { data: AdminOverviewData }) {
+export function AdminOverview({
+  data,
+  todayLabel,
+  role,
+}: {
+  data: AdminOverviewData
+  todayLabel: string
+  role: string
+}) {
   const t = useTranslations("admin")
-
-  const todayLabel = new Date().toLocaleDateString("ar-EG", {
-    timeZone: "Africa/Cairo",
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+  const isOwner = role === "owner"
 
   const { today, month, doctors, todayAppointments } = data
 
@@ -159,7 +160,7 @@ export function AdminOverview({ data }: { data: AdminOverviewData }) {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{t("pageTitle")}</h1>
           <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-600 bg-amber-50 dark:bg-amber-950/20">
-            {t("adminBadge")}
+            {isOwner ? t("ownerBadge") : t("adminBadge")}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">{todayLabel}</p>

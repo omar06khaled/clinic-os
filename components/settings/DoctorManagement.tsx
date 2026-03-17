@@ -30,18 +30,21 @@ type Props = {
 }
 
 function getRoleBadgeClass(role: string) {
+  if (role === "owner")        return "text-xs border-rose-500/40 text-rose-600 bg-rose-50 dark:bg-rose-950/20"
   if (role === "admin")        return "text-xs border-amber-500/40 text-amber-600 bg-amber-50 dark:bg-amber-950/20"
   if (role === "receptionist") return "text-xs border-purple-500/40 text-purple-600 bg-purple-50 dark:bg-purple-950/20"
   return "text-xs border-blue-500/40 text-blue-600 bg-blue-50 dark:bg-blue-950/20"
 }
 
 function getRoleLabel(role: string) {
+  if (role === "owner")        return "Owner"
   if (role === "admin")        return "Admin"
   if (role === "receptionist") return "Receptionist"
   return "Doctor"
 }
 
 function getRoleIcon(role: string) {
+  if (role === "owner")        return <ShieldCheck className="h-4 w-4 text-rose-500" />
   if (role === "admin")        return <ShieldCheck className="h-4 w-4 text-muted-foreground" />
   if (role === "receptionist") return <ConciergeBell className="h-4 w-4 text-muted-foreground" />
   return <Stethoscope className="h-4 w-4 text-muted-foreground" />
@@ -59,7 +62,7 @@ export function DoctorManagement({ initialDoctors }: Props) {
   const [name, setName] = useState("")
   const [specialty, setSpecialty] = useState("")
   const [email, setEmail] = useState("")
-  const [role, setRole] = useState<"doctor" | "admin" | "receptionist">("doctor")
+  const [role, setRole] = useState<"doctor" | "admin" | "receptionist" | "owner">("doctor")
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault()
@@ -223,13 +226,14 @@ export function DoctorManagement({ initialDoctors }: Props) {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="inv-role">Role *</Label>
-                  <Select value={role} onValueChange={(v) => setRole(v as "doctor" | "admin" | "receptionist")}>
+                  <Select value={role} onValueChange={(v) => setRole(v as "doctor" | "admin" | "receptionist" | "owner")}>
                     <SelectTrigger id="inv-role">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="doctor">Doctor</SelectItem>
+                      <SelectItem value="owner">Owner</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="doctor">Doctor</SelectItem>
                       <SelectItem value="receptionist">Receptionist</SelectItem>
                     </SelectContent>
                   </Select>

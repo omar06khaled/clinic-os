@@ -184,7 +184,7 @@ export function RevenueList({
                           {row.convenienceFee} {t("currencySuffix")}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">٠ {t("currencySuffix")}</span>
+                        <span className="text-muted-foreground">{t("zeroAmount")} {t("currencySuffix")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

@@ -51,7 +51,7 @@ type Props = {
 export function SettingsClient({ currentRole, currentDoctor, clinic: initialClinic, doctors }: Props) {
   const t = useTranslations("settings")
   const tc = useTranslations("common")
-  const isAdmin = currentRole === "admin"
+  const isAdmin = currentRole === "admin" || currentRole === "owner"
 
   // Clinic profile form state (admin only)
   const [clinic, setClinic] = useState(initialClinic)

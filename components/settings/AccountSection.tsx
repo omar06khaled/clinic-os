@@ -15,12 +15,14 @@ type Props = {
 }
 
 function getRoleBadgeClass(role: string) {
+  if (role === "owner")        return "border-rose-500/40 text-rose-600 bg-rose-50 dark:bg-rose-950/20"
   if (role === "admin")        return "border-amber-500/40 text-amber-600 bg-amber-50 dark:bg-amber-950/20"
   if (role === "receptionist") return "border-purple-500/40 text-purple-600 bg-purple-50 dark:bg-purple-950/20"
   return "border-blue-500/40 text-blue-600 bg-blue-50 dark:bg-blue-950/20"
 }
 
 function getRoleLabel(role: string) {
+  if (role === "owner")        return "Owner"
   if (role === "admin")        return "Admin"
   if (role === "receptionist") return "Receptionist"
   return "Doctor"

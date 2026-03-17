@@ -19,21 +19,22 @@
 --   the user's JWT — this only works for queries made through the Supabase
 --   JS client with the anon/authenticated role, NOT through Prisma.
 --
--- THREE-ROLE SYSTEM:
+-- FOUR-ROLE SYSTEM:
+--   owner        — unrestricted access to ALL data across all tables and all doctors
 --   doctor       — sees only their own data (scoped by doctorId)
 --   admin        — sees all data in their clinic (all doctorIds in same clinicId)
 --   receptionist — same clinic-wide scope as admin for clinical tables;
 --                  NO access to Expense or AuditorLog
 --
 -- TABLE COVERAGE (8 tables):
---   Patient          → doctor (own), admin (clinic), receptionist (clinic)
---   ChronicCondition → doctor (own via patient), admin (clinic), receptionist (clinic)
---   Appointment      → doctor (own), admin (clinic), receptionist (clinic)
---   VisitRecord      → doctor (own via patient), admin (clinic), receptionist (clinic)
---   Attachment       → doctor (own via record→patient), admin (clinic), receptionist (clinic)
---   AuditorLog       → doctor (own), admin (clinic), receptionist (NO ACCESS)
---   Expense          → admin (clinic), doctor (NO ACCESS), receptionist (NO ACCESS)
---   Lab              → doctor (own), admin (clinic), receptionist (clinic)
+--   Patient          → owner (all), doctor (own), admin (clinic), receptionist (clinic)
+--   ChronicCondition → owner (all), doctor (own via patient), admin (clinic), receptionist (clinic)
+--   Appointment      → owner (all), doctor (own), admin (clinic), receptionist (clinic)
+--   VisitRecord      → owner (all), doctor (own via patient), admin (clinic), receptionist (clinic)
+--   Attachment       → owner (all), doctor (own via record→patient), admin (clinic), receptionist (clinic)
+--   AuditorLog       → owner (all), doctor (own), admin (clinic), receptionist (NO ACCESS)
+--   Expense          → owner (all), admin (clinic), doctor (NO ACCESS), receptionist (NO ACCESS)
+--   Lab              → owner (all), doctor (own), admin (clinic), receptionist (clinic)
 -- ============================================================================
 
 
@@ -72,6 +73,13 @@ DROP POLICY IF EXISTS "patient_access" ON "Patient";
 CREATE POLICY "patient_access" ON "Patient"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all patients
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: own patients only
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -98,6 +106,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any patient
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: can only write their own patients
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -138,6 +153,13 @@ DROP POLICY IF EXISTS "chroniccondition_access" ON "ChronicCondition";
 CREATE POLICY "chroniccondition_access" ON "ChronicCondition"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all conditions
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: conditions for their own patients
   "patientId" IN (
     SELECT id FROM "Patient"
@@ -170,6 +192,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any condition
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   "patientId" IN (
     SELECT id FROM "Patient"
     WHERE "doctorId" = (
@@ -215,6 +244,13 @@ DROP POLICY IF EXISTS "appointment_access" ON "Appointment";
 CREATE POLICY "appointment_access" ON "Appointment"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all appointments
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: own appointments only
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -241,6 +277,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any appointment
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: can only write their own appointments
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -287,6 +330,13 @@ DROP POLICY IF EXISTS "visitrecord_access" ON "VisitRecord";
 CREATE POLICY "visitrecord_access" ON "VisitRecord"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all visit records
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: own patients' records only
   "patientId" IN (
     SELECT id FROM "Patient"
@@ -319,6 +369,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any visit record
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   "patientId" IN (
     SELECT id FROM "Patient"
     WHERE "doctorId" = (
@@ -363,6 +420,13 @@ DROP POLICY IF EXISTS "attachment_access" ON "Attachment";
 CREATE POLICY "attachment_access" ON "Attachment"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all attachments
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: attachments on their own patients' records
   "recordId" IN (
     SELECT id FROM "VisitRecord"
@@ -401,6 +465,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any attachment
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   "recordId" IN (
     SELECT id FROM "VisitRecord"
     WHERE "patientId" IN (
@@ -454,6 +525,13 @@ DROP POLICY IF EXISTS "auditorlog_access" ON "AuditorLog";
 CREATE POLICY "auditorlog_access" ON "AuditorLog"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all auditor logs
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: own logs only
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -480,6 +558,13 @@ USING (
   -- Receptionist: NO ACCESS — no clause added here
 )
 WITH CHECK (
+  -- Owner: can write any auditor log
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Only the owning doctor or admin writing their own log
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -506,28 +591,46 @@ DROP POLICY IF EXISTS "expense_admin_only" ON "Expense";
 CREATE POLICY "expense_admin_only" ON "Expense"
 FOR ALL
 USING (
-  -- Admin only: all expenses in their clinic
+  -- Owner: unrestricted access to all expenses
   EXISTS (
     SELECT 1 FROM "Doctor"
-    WHERE email = auth.email() AND role = 'admin'
+    WHERE email = auth.email() AND role = 'owner'
     LIMIT 1
   )
-  AND "clinicId" = (
-    SELECT "clinicId" FROM "Doctor"
-    WHERE email = auth.email()
-    LIMIT 1
+  OR
+  -- Admin only: all expenses in their clinic
+  (
+    EXISTS (
+      SELECT 1 FROM "Doctor"
+      WHERE email = auth.email() AND role = 'admin'
+      LIMIT 1
+    )
+    AND "clinicId" = (
+      SELECT "clinicId" FROM "Doctor"
+      WHERE email = auth.email()
+      LIMIT 1
+    )
   )
 )
 WITH CHECK (
+  -- Owner: can write any expense
   EXISTS (
     SELECT 1 FROM "Doctor"
-    WHERE email = auth.email() AND role = 'admin'
+    WHERE email = auth.email() AND role = 'owner'
     LIMIT 1
   )
-  AND "clinicId" = (
-    SELECT "clinicId" FROM "Doctor"
-    WHERE email = auth.email()
-    LIMIT 1
+  OR
+  (
+    EXISTS (
+      SELECT 1 FROM "Doctor"
+      WHERE email = auth.email() AND role = 'admin'
+      LIMIT 1
+    )
+    AND "clinicId" = (
+      SELECT "clinicId" FROM "Doctor"
+      WHERE email = auth.email()
+      LIMIT 1
+    )
   )
 );
 
@@ -547,6 +650,13 @@ DROP POLICY IF EXISTS "lab_access" ON "Lab";
 CREATE POLICY "lab_access" ON "Lab"
 FOR ALL
 USING (
+  -- Owner: unrestricted access to all labs
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: own labs only
   "doctorId" = (
     SELECT id FROM "Doctor"
@@ -573,6 +683,13 @@ USING (
   )
 )
 WITH CHECK (
+  -- Owner: can write any lab
+  EXISTS (
+    SELECT 1 FROM "Doctor"
+    WHERE email = auth.email() AND role = 'owner'
+    LIMIT 1
+  )
+  OR
   -- Doctor: can only write their own labs
   "doctorId" = (
     SELECT id FROM "Doctor"

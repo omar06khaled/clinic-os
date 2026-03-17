@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { ChevronRight, ChevronLeft, Plus, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,26 +21,21 @@ import type { BudgetMap } from "@/app/api/financials/budget/route"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BUDGET_CATEGORIES: { key: string; label: string }[] = [
-  { key: "rent", label: "إيجار" },
-  { key: "utilities", label: "مرافق" },
-  { key: "supplies", label: "مستلزمات" },
-  { key: "salary", label: "رواتب" },
-  { key: "equipment", label: "معدات" },
-  { key: "other", label: "أخرى" },
-]
+const BUDGET_CATEGORY_KEYS = ["rent", "utilities", "supplies", "salary", "equipment", "other"] as const
+type CategoryKey = typeof BUDGET_CATEGORY_KEYS[number]
 
 // Bug 5 fix: filter chips live at page level so they never move
-const FILTER_CHIPS: { key: FilterChip; label: string }[] = [
-  { key: "all", label: "الكل" },
-  { key: "rent", label: "إيجار" },
-  { key: "utilities", label: "مرافق" },
-  { key: "supplies", label: "مستلزمات" },
-  { key: "salary", label: "رواتب" },
-  { key: "equipment", label: "معدات" },
-  { key: "other", label: "أخرى" },
-  { key: "outstanding", label: "مستحق" },
-]
+const FILTER_CHIP_KEYS: FilterChip[] = ["all", "rent", "utilities", "supplies", "salary", "equipment", "other", "outstanding"]
+
+// Maps category key → financials translation key
+const CAT_LABEL_KEYS: Record<string, string> = {
+  rent: "catRent",
+  utilities: "catUtilities",
+  supplies: "catSupplies",
+  salary: "catSalary",
+  equipment: "catEquipment",
+  other: "catOther",
+}
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -76,6 +72,7 @@ function BudgetBar({
   budgetAmount: number
   spentAmount: number
 }) {
+  const tf = useTranslations("financials")
   const pct = budgetAmount > 0 ? Math.min(200, Math.round((spentAmount / budgetAmount) * 100)) : 0
   const isOver = spentAmount > budgetAmount
   const isAmber = !isOver && pct >= 80
@@ -85,7 +82,7 @@ function BudgetBar({
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium">{label}</span>
         <span className={`tabular-nums ${isOver ? "text-red-600 font-semibold" : "text-muted-foreground"}`}>
-          {spentAmount.toLocaleString("ar-EG")} / {budgetAmount.toLocaleString("ar-EG")} ج.م
+          {spentAmount.toLocaleString("ar-EG")} / {budgetAmount.toLocaleString("ar-EG")} {tf("currencySuffix")}
           {isOver && " ⚠"}
         </span>
       </div>
@@ -114,14 +111,26 @@ function BudgetModal({
   onClose: () => void
   onSaved: (b: BudgetMap) => void
 }) {
+  const tf = useTranslations("financials")
   const [values, setValues] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  function catLabel(key: CategoryKey): string {
+    switch (key) {
+      case "rent":      return tf("catRent")
+      case "utilities": return tf("catUtilities")
+      case "supplies":  return tf("catSupplies")
+      case "salary":    return tf("catSalary")
+      case "equipment": return tf("catEquipment")
+      case "other":     return tf("catOther")
+    }
+  }
+
   useEffect(() => {
     if (open) {
       const init: Record<string, string> = {}
-      for (const { key } of BUDGET_CATEGORIES) {
+      for (const key of BUDGET_CATEGORY_KEYS) {
         init[key] = budget[key] != null ? String(budget[key]) : ""
       }
       setValues(init)
@@ -134,7 +143,7 @@ function BudgetModal({
     setError(null)
     try {
       const payload: BudgetMap = {}
-      for (const { key } of BUDGET_CATEGORIES) {
+      for (const key of BUDGET_CATEGORY_KEYS) {
         const v = Number(values[key] ?? 0)
         if (!isNaN(v) && v >= 0) payload[key] = v
       }
@@ -143,12 +152,12 @@ function BudgetModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ budget: payload }),
       })
-      if (!res.ok) throw new Error("فشل الحفظ")
+      if (!res.ok) throw new Error("save failed")
       const { budget: saved } = await res.json()
       onSaved(saved)
       onClose()
     } catch {
-      setError("حدث خطأ أثناء الحفظ")
+      setError(tf("budgetSaveError"))
     } finally {
       setSaving(false)
     }
@@ -158,12 +167,12 @@ function BudgetModal({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>تعديل الميزانية الشهرية</DialogTitle>
+          <DialogTitle>{tf("budgetModalTitle")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          {BUDGET_CATEGORIES.map(({ key, label }) => (
+          {BUDGET_CATEGORY_KEYS.map((key) => (
             <div key={key} className="flex items-center gap-3">
-              <Label className="w-24 shrink-0 text-sm">{label}</Label>
+              <Label className="w-24 shrink-0 text-sm">{catLabel(key)}</Label>
               <Input
                 type="number"
                 min="0"
@@ -172,7 +181,7 @@ function BudgetModal({
                 placeholder="0"
                 className="[direction:ltr]"
               />
-              <span className="text-xs text-muted-foreground shrink-0">ج.م</span>
+              <span className="text-xs text-muted-foreground shrink-0">{tf("currencySuffix")}</span>
             </div>
           ))}
           {error && (
@@ -183,10 +192,10 @@ function BudgetModal({
         </div>
         <DialogFooter className="flex-row-reverse gap-2">
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "جاري الحفظ..." : "حفظ الميزانية"}
+            {saving ? tf("saving") : tf("budgetSaveButton")}
           </Button>
           <Button variant="outline" onClick={onClose}>
-            إلغاء
+            {tf("cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -197,6 +206,7 @@ function BudgetModal({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExpensesPage() {
+  const tf = useTranslations("financials")
   const today = cairoMonthKey()
 
   // ── State ────────────────────────────────────────────────────────────────
@@ -293,19 +303,38 @@ export default function ExpensesPage() {
     return expenses.filter((e) => e.category === key).length
   }
 
+  // ── Chip label helper ────────────────────────────────────────────────────
+  function chipLabel(key: FilterChip): string {
+    switch (key) {
+      case "all":         return tf("filterAll")
+      case "outstanding": return tf("filterOutstanding")
+      case "rent":        return tf("catRent")
+      case "utilities":   return tf("catUtilities")
+      case "supplies":    return tf("catSupplies")
+      case "salary":      return tf("catSalary")
+      case "equipment":   return tf("catEquipment")
+      case "other":       return tf("catOther")
+    }
+  }
+
+  // ── Budget bar label helper ───────────────────────────────────────────────
+  function budgetCatLabel(key: string): string {
+    return tf((CAT_LABEL_KEYS[key] ?? key) as Parameters<typeof tf>[0])
+  }
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6">
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">المصروفات</h1>
+        <h1 className="text-xl font-bold">{tf("tabExpenses")}</h1>
         <Button
           size="sm"
           className="h-9 gap-1.5"
           onClick={() => setShowAddModal(true)}
         >
           <Plus className="h-4 w-4" />
-          إضافة مصروف
+          {tf("addExpenseButton")}
         </Button>
       </div>
 
@@ -330,7 +359,7 @@ export default function ExpensesPage() {
               setFilter("all")
             }}
           >
-            الشهر الحالي
+            {tf("currentMonth")}
           </Button>
         </div>
       )}
@@ -339,17 +368,17 @@ export default function ExpensesPage() {
       {filter !== "salary" && (
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <p className="text-xs text-muted-foreground mb-1">هذا الشهر</p>
+            <p className="text-xs text-muted-foreground mb-1">{tf("statThisMonth")}</p>
             <p className="text-2xl font-bold tabular-nums">
               {stats.thisMonthTotal.toLocaleString("ar-EG")}
-              <span className="text-base font-normal text-muted-foreground mr-1">ج.م</span>
+              <span className="text-base font-normal text-muted-foreground mr-1">{tf("currencySuffix")}</span>
             </p>
           </div>
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <p className="text-xs text-muted-foreground mb-1">الشهر الماضي</p>
+            <p className="text-xs text-muted-foreground mb-1">{tf("statLastMonth")}</p>
             <p className="text-2xl font-bold tabular-nums text-muted-foreground">
               {stats.lastMonthTotal.toLocaleString("ar-EG")}
-              <span className="text-base font-normal mr-1">ج.م</span>
+              <span className="text-base font-normal mr-1">{tf("currencySuffix")}</span>
             </p>
             {stats.lastMonthTotal > 0 && (
               <p
@@ -361,12 +390,13 @@ export default function ExpensesPage() {
               >
                 {stats.thisMonthTotal > stats.lastMonthTotal ? "▲" : "▼"}
                 {" "}
-                {Math.abs(
-                  Math.round(
-                    ((stats.thisMonthTotal - stats.lastMonthTotal) / stats.lastMonthTotal) * 100
-                  )
-                )}
-                % مقارنة بالشهر الماضي
+                {tf("vsLastMonth", {
+                  pct: Math.abs(
+                    Math.round(
+                      ((stats.thisMonthTotal - stats.lastMonthTotal) / stats.lastMonthTotal) * 100
+                    )
+                  ),
+                })}
               </p>
             )}
           </div>
@@ -377,7 +407,7 @@ export default function ExpensesPage() {
       {filter !== "outstanding" && filter !== "salary" && (
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold">الميزانية مقابل الفعلي</h2>
+            <h2 className="text-sm font-semibold">{tf("budgetVsActual")}</h2>
             <Button
               variant="outline"
               size="sm"
@@ -385,19 +415,19 @@ export default function ExpensesPage() {
               onClick={() => setShowBudgetModal(true)}
             >
               <Settings2 className="h-3.5 w-3.5" />
-              {hasBudget ? "تعديل الميزانية" : "إنشاء ميزانية"}
+              {hasBudget ? tf("budgetEdit") : tf("budgetCreate")}
             </Button>
           </div>
 
           {hasBudget ? (
             <div className="space-y-3">
-              {BUDGET_CATEGORIES.map(({ key, label }) => {
+              {BUDGET_CATEGORY_KEYS.map((key) => {
                 const budgeted = budget[key] ?? 0
                 if (budgeted === 0) return null
                 return (
                   <BudgetBar
                     key={key}
-                    label={label}
+                    label={budgetCatLabel(key)}
                     budgetAmount={budgeted}
                     spentAmount={spentByCategory[key] ?? 0}
                   />
@@ -406,14 +436,14 @@ export default function ExpensesPage() {
             </div>
           ) : (
             <div className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
-              <p>لم يتم تحديد ميزانية بعد</p>
+              <p>{tf("budgetNotSet")}</p>
               <Button
                 variant="link"
                 size="sm"
                 className="mt-1 text-xs h-auto p-0"
                 onClick={() => setShowBudgetModal(true)}
               >
-                إنشاء ميزانية الآن ←
+                {tf("budgetCreateNow")}
               </Button>
             </div>
           )}
@@ -422,7 +452,7 @@ export default function ExpensesPage() {
 
       {/* ── Filter chips — Bug 5 fix: always at page level, never inside ExpenseList ── */}
       <div className="flex gap-2 flex-wrap">
-        {FILTER_CHIPS.map(({ key, label }) => {
+        {FILTER_CHIP_KEYS.map((key) => {
           const count = chipCount(key)
           return (
             <button
@@ -434,7 +464,7 @@ export default function ExpensesPage() {
                   : "bg-muted text-muted-foreground hover:bg-muted/70"
               }`}
             >
-              {label}
+              {chipLabel(key)}
               {count !== null && key !== "all" && (
                 <span className="mr-1 opacity-60">({count})</span>
               )}
@@ -457,12 +487,12 @@ export default function ExpensesPage() {
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           {filter === "salary" ? (
             <>
-              <h2 className="mb-3 text-sm font-semibold">كشف الرواتب</h2>
+              <h2 className="mb-3 text-sm font-semibold">{tf("salaryPayrollTitle")}</h2>
               <SalarySection expenses={expenses} />
             </>
           ) : (
             <>
-              <h2 className="mb-3 text-sm font-semibold">قائمة المصروفات</h2>
+              <h2 className="mb-3 text-sm font-semibold">{tf("expenseListTitle")}</h2>
               <ExpenseList
                 expenses={expenses}
                 filter={filter}
